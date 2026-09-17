@@ -100,10 +100,13 @@ export default function VerFluxoCaixa({ somenteLeitura }: { somenteLeitura: bool
     setErro(null);
     setSalvando(true);
     try {
+      const corpo = visao?.configurado
+        ? { valor: paraNumero(valorSaldo) }
+        : { valor: paraNumero(valorSaldo), dataReferencia: dataSaldo };
       const r = await fetch("/api/fluxo-caixa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ valor: paraNumero(valorSaldo), dataReferencia: dataSaldo }),
+        body: JSON.stringify(corpo),
       });
       const d = await r.json();
       if (!r.ok) { setErro(d.erro); return; }
@@ -144,7 +147,7 @@ export default function VerFluxoCaixa({ somenteLeitura }: { somenteLeitura: bool
         </div>
         {!somenteLeitura && (
           <button type="button" className="fm-caixa-v41-saldo-inicial" onClick={() => setDefinindoSaldo(true)}>
-            Definir saldo inicial
+            {visao?.configurado ? "Acrescentar saldo" : "Definir saldo inicial"}
           </button>
         )}
       </div>
@@ -286,8 +289,12 @@ export default function VerFluxoCaixa({ somenteLeitura }: { somenteLeitura: bool
           <div className="fm-custo-modal fm-caixa-v41-modal">
             <div className="fm-custo-modal-cabecalho">
               <div>
-                <h2>Saldo inicial de caixa</h2>
-                <p>Defina o ponto de partida do acumulado financeiro.</p>
+                <h2>{visao?.configurado ? "Acrescentar saldo inicial" : "Saldo inicial de caixa"}</h2>
+                <p>
+                  {visao?.configurado
+                    ? `Saldo inicial atual: ${real(visao.saldoInicial)}. O valor informado \u00e9 somado a ele \u2014 n\u00e3o \u00e9 poss\u00edvel redefinir.`
+                    : "Defina o ponto de partida do acumulado financeiro."}
+                </p>
               </div>
               <button type="button" className="fm-custo-modal-fechar" onClick={() => setDefinindoSaldo(false)} aria-label="Fechar">{"\u00d7"}</button>
             </div>
@@ -297,13 +304,15 @@ export default function VerFluxoCaixa({ somenteLeitura }: { somenteLeitura: bool
                   <div className="fm-custo-secao-titulo">{"Refer\u00eancia do saldo"}</div>
                   <div className="fm-caixa-v41-saldo-grid">
                     <div className="fm-custo-campo">
-                      <label>Valor <b>*</b></label>
+                      <label>{visao?.configurado ? "Valor a acrescentar" : "Valor"} <b>*</b></label>
                       <CampoMoeda value={valorSaldo} onChange={(e) => setValorSaldo(e.target.value)} placeholder="0,00" required disabled={salvando} />
                     </div>
-                    <div className="fm-custo-campo">
-                      <label>{"Data de refer\u00eancia "}<b>*</b></label>
-                      <input type="date" value={dataSaldo} onChange={(e) => setDataSaldo(e.target.value)} required disabled={salvando} />
-                    </div>
+                    {!visao?.configurado && (
+                      <div className="fm-custo-campo">
+                        <label>{"Data de refer\u00eancia "}<b>*</b></label>
+                        <input type="date" value={dataSaldo} onChange={(e) => setDataSaldo(e.target.value)} required disabled={salvando} />
+                      </div>
+                    )}
                   </div>
                 </section>
               </div>

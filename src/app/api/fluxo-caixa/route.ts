@@ -37,17 +37,51 @@ export async function GET(req: Request) {
   return NextResponse.json({ visao });
 }
 
-const saldo = z.object({
+const saldoNovo = z.object({
   valor: z.number(),
   dataReferencia: z.string().regex(DATA, "Data de referência inválida."),
 });
 
-/** Saldo inicial: registro único. Definir de novo substitui o anterior. */
+const saldoAcrescimo = z.object({
+  valor: z.number(),
+});
+
+/**
+ * Saldo inicial: definido uma única vez. Depois de configurado, o valor
+ * enviado é ACRESCENTADO ao existente — nunca substitui a data nem o valor
+ * já gravados, para que um novo lançamento não apague o saldo anterior.
+ */
 export async function POST(req: Request) {
   const guarda = await podeGravar();
   if (guarda.erro) return guarda.erro;
 
-  const dados = saldo.safeParse(await req.json().catch(() => null));
+  const corpo = await req.json().catch(() => null);
+  const existente = await prisma.saldoCaixa.findFirst({ orderBy: { criadoEm: "asc" } });
+
+  if (!existente) {
+    const dados = saldoNovo.safeParse(corpo);
+    if (!dados.success) {
+      return NextResponse.json(
+        { erro: mensagemDeValidacao(dados.error) },
+        { status: 400 }
+      );
+    }
+
+    const registro = await prisma.saldoCaixa.create({ data: dados.data });
+
+    await registrarAuditoria({
+      sessao: guarda.sessao,
+      modulo: "Fluxo de Caixa",
+      acao: "definir-saldo-inicial",
+      registroId: registro.id,
+      descricao: "Saldo inicial do caixa configurado.",
+      depois: { valor: registro.valor, dataReferencia: registro.dataReferencia },
+    });
+
+    return NextResponse.json({ ok: true, saldo: registro });
+  }
+
+  const dados = saldoAcrescimo.safeParse(corpo);
   if (!dados.success) {
     return NextResponse.json(
       { erro: mensagemDeValidacao(dados.error) },
@@ -55,33 +89,21 @@ export async function POST(req: Request) {
     );
   }
 
-  const existente = await prisma.saldoCaixa.findFirst({ orderBy: { criadoEm: "asc" } });
-  const registro = existente
-    ? await prisma.saldoCaixa.update({
-        where: { id: existente.id },
-        data: { valor: dados.data.valor, dataReferencia: dados.data.dataReferencia },
-      })
-    : await prisma.saldoCaixa.create({ data: dados.data });
+  const valorAnterior = existente.valor;
+  const registro = await prisma.saldoCaixa.update({
+    where: { id: existente.id },
+    data: { valor: valorAnterior + dados.data.valor },
+  });
 
   await registrarAuditoria({
-  sessao: guarda.sessao,
-  modulo: "Fluxo de Caixa",
-  acao: existente ? "alterar-saldo-inicial" : "definir-saldo-inicial",
-  registroId: registro.id,
-  descricao: existente
-    ? "Saldo inicial do caixa alterado."
-    : "Saldo inicial do caixa configurado.",
-  antes: existente
-    ? {
-        valor: existente.valor,
-        dataReferencia: existente.dataReferencia,
-      }
-    : undefined,
-  depois: {
-    valor: registro.valor,
-    dataReferencia: registro.dataReferencia,
-  },
-});
+    sessao: guarda.sessao,
+    modulo: "Fluxo de Caixa",
+    acao: "acrescentar-saldo-inicial",
+    registroId: registro.id,
+    descricao: `Saldo inicial acrescido em ${dados.data.valor}.`,
+    antes: { valor: valorAnterior, dataReferencia: existente.dataReferencia },
+    depois: { valor: registro.valor, dataReferencia: registro.dataReferencia },
+  });
 
-return NextResponse.json({ ok: true, saldo: registro });
+  return NextResponse.json({ ok: true, saldo: registro });
 }
