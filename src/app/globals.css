@@ -1319,9 +1319,10 @@ html.light .select-padrao-opcao.selecionada {
   box-shadow: none;
 }
 
-/* ---------- INPUTS E TEXTAREAS ---------- */
+/* ---------- INPUTS, SELECTS E TEXTAREAS ---------- */
 
 .campo input,
+.campo select,
 .campo textarea {
   width: 100%;
   min-width: 0;
@@ -1333,7 +1334,8 @@ html.light .select-padrao-opcao.selecionada {
   font-size: 13px;
 }
 
-.campo input {
+.campo input,
+.campo select {
   min-height: 44px;
 }
 
@@ -6218,6 +6220,16 @@ html.light .barra-filtros,
   .casca .fm-kpis-6 { grid-template-columns: repeat(3, minmax(0,1fr)); }
 }
 
+/*
+  A barra lateral fica fixa (não vira menu-gaveta) até 700px de largura da
+  janela, então em telas de tablet a área útil é bem menor que a largura
+  total — 3 colunas nessa faixa espremiam os cartões e cortavam os valores
+  em reticências ("R$ ..."). Cai para 2 colunas mais cedo.
+*/
+@media (max-width: 900px) {
+  .casca .fm-kpis-6 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
 @media (max-width: 760px) {
   .casca .pagina { padding: 18px 14px 24px; }
   .casca .barra-topo { min-height: 58px; padding: 0 14px; }
@@ -6808,6 +6820,19 @@ html.light .barra-filtros,
   text-transform: uppercase;
   white-space: nowrap;
 }
+
+/*
+  A tabela usa overflow:visible (para menus de ação nas linhas não serem
+  cortados), então o fundo do cabeçalho — com cantos retos — não é aparado
+  pelos cantos arredondados do cartão. Arredondamos os cantos do próprio
+  cabeçalho para casar com o cartão, em vez de mudar o overflow.
+*/
+.casca .fm-tabela-operacional thead th:first-child {
+  border-top-left-radius: 11px;
+}
+.casca .fm-tabela-operacional thead th:last-child {
+  border-top-right-radius: 11px;
+}
 .casca .fm-tabela-operacional tbody td {
   height: 44px;
   padding: 8px 11px;
@@ -7309,6 +7334,20 @@ html.light .barra-filtros,
   flex: 1 1 auto;
   overflow-y: auto;
   padding: 18px 20px 8px;
+}
+
+/*
+  Um dropdown aberto (position:absolute) ainda conta como conteúdo
+  "transbordando" para um ancestral com overflow:auto, o que criava uma
+  barra de rolagem em vez de deixar a lista simplesmente flutuar por cima.
+  Enquanto uma lista estiver aberta, liberamos o overflow do modal.
+*/
+.casca .fm-custo-modal:has(.select-padrao.aberto) {
+  overflow: visible;
+}
+
+.casca .fm-custo-modal-corpo:has(.select-padrao.aberto) {
+  overflow: visible;
 }
 
 .casca .fm-custo-secao {
@@ -9684,11 +9723,27 @@ body {
   border-color: var(--custos-claro-borda) !important;
 }
 
+/* KPIs de resumo (Compromissos do mês, Realizado no mês, A pagar) */
+[data-theme="claro"] .casca .fm-custos-page .fm-custos-resumo-v44 .fm-kpi-compacto {
+  background: var(--custos-claro-superficie) !important;
+  border-color: var(--custos-claro-borda) !important;
+  box-shadow: 0 10px 28px -28px rgba(21, 58, 83, .35) !important;
+}
+
+[data-theme="claro"] .casca .fm-custos-page .fm-custos-resumo-v44 .fm-kpi-compacto > span,
+[data-theme="claro"] .casca .fm-custos-page .fm-custos-resumo-v44 .fm-kpi-compacto > small {
+  color: var(--custos-claro-texto-secundario) !important;
+}
+
+[data-theme="claro"] .casca .fm-custos-page .fm-custos-resumo .fm-kpi-neutro > strong {
+  color: var(--custos-claro-texto) !important;
+}
+
 /* Filtros */
 [data-theme="claro"] .casca .fm-custos-page .fm-filtros-operacionais,
 [data-theme="claro"] .casca .fm-custos-page .fm-custos-filtros-v44 {
-  background: #243c50 !important;
-  border-color: #243c50 !important;
+  background: var(--custos-claro-superficie-suave) !important;
+  border-color: var(--custos-claro-borda) !important;
 }
 
 [data-theme="claro"] .casca .fm-custos-page .fm-busca-operacional input,
@@ -9708,8 +9763,8 @@ body {
 
 [data-theme="claro"] .casca .fm-custos-page .fm-tabela-operacional th,
 [data-theme="claro"] .casca .fm-custos-page .fm-custos-tabela-v44 th {
-  background: #243c50 !important;
-  color: #8fb0c6 !important;
+  background: var(--custos-claro-superficie-suave) !important;
+  color: var(--custos-claro-texto-secundario) !important;
 }
 
 [data-theme="claro"] .casca .fm-custos-page .fm-tabela-operacional td,
@@ -9719,42 +9774,81 @@ body {
   border-color: var(--custos-claro-borda) !important;
 }
 
-/* Modal de custo */
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-modal-overlay {
+/*
+  Modal de formulário (fm-custo-modal / fm-custo-campo): compartilhado por
+  Custos, Medições, Notas Fiscais, Recibos e Usuários. Corrigido de forma
+  global (sem escopo de página) com as variáveis de tema já usadas pelo
+  resto do app, em vez de cor fixa — para não repetir esse bug em cada tela.
+*/
+[data-theme="claro"] .casca .fm-custo-modal-overlay {
   background: rgba(15, 34, 49, .34) !important;
 }
 
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-modal {
-  background: var(--custos-claro-superficie) !important;
-  color: var(--custos-claro-texto) !important;
-  border-color: var(--custos-claro-borda-forte) !important;
+[data-theme="claro"] .casca .fm-custo-modal {
+  background: var(--fm-surface) !important;
+  color: var(--fm-text) !important;
+  border-color: var(--fm-border-strong) !important;
 }
 
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-modal-cabecalho,
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-modal-corpo {
-  background: var(--custos-claro-superficie) !important;
-  border-color: var(--custos-claro-borda) !important;
+[data-theme="claro"] .casca .fm-custo-modal-cabecalho,
+[data-theme="claro"] .casca .fm-custo-modal-corpo {
+  background: var(--fm-surface) !important;
+  border-color: var(--fm-border) !important;
 }
 
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-modal-cabecalho h2,
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-secao-titulo {
-  color: var(--custos-claro-texto) !important;
+[data-theme="claro"] .casca .fm-custo-modal-cabecalho h2,
+[data-theme="claro"] .casca .fm-custo-secao-titulo {
+  color: var(--fm-text) !important;
 }
 
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-campo label {
-  color: var(--custos-claro-texto-secundario) !important;
+[data-theme="claro"] .casca .fm-custo-modal-cabecalho p {
+  color: var(--fm-muted) !important;
 }
 
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-campo input,
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-campo select {
-  background: var(--custos-claro-superficie-suave) !important;
-  color: var(--custos-claro-texto) !important;
-  border-color: var(--custos-claro-borda) !important;
+[data-theme="claro"] .casca .fm-custo-campo label {
+  color: var(--fm-muted) !important;
 }
 
-[data-theme="claro"] .casca .fm-custos-page .fm-custo-modal-rodape {
-  background: var(--custos-claro-superficie-suave) !important;
-  border-color: var(--custos-claro-borda) !important;
+[data-theme="claro"] .casca .fm-custo-campo input,
+[data-theme="claro"] .casca .fm-custo-campo select,
+[data-theme="claro"] .casca .fm-custo-campo textarea {
+  background: var(--fm-surface-2) !important;
+  color: var(--fm-text) !important;
+  border-color: var(--fm-border) !important;
+}
+
+[data-theme="claro"] .casca .fm-custo-campo > .select-padrao > .select-padrao-botao,
+[data-theme="claro"] .casca .fm-custo-campo .select-padrao-botao {
+  background: var(--fm-surface-2) !important;
+  color: var(--fm-text) !important;
+  border-color: var(--fm-border) !important;
+}
+
+[data-theme="claro"] .casca .fm-custo-campo .select-padrao-placeholder {
+  color: var(--fm-faint) !important;
+}
+
+[data-theme="claro"] .casca .fm-custo-campo .select-padrao-seta {
+  color: var(--fm-muted) !important;
+}
+
+[data-theme="claro"] .casca .fm-custo-campo .select-padrao-lista {
+  background: var(--fm-surface) !important;
+  border-color: var(--fm-border) !important;
+}
+
+[data-theme="claro"] .casca .fm-custo-campo .select-padrao-opcao {
+  color: var(--fm-text) !important;
+}
+
+[data-theme="claro"] .casca .fm-custo-campo > input::placeholder,
+[data-theme="claro"] .casca .fm-custo-campo textarea::placeholder {
+  color: var(--fm-faint) !important;
+}
+
+[data-theme="claro"] .casca .fm-custo-modal-rodape {
+  background: var(--fm-surface-2) !important;
+  border-color: var(--fm-border) !important;
 }
 
 /* ============================================================
