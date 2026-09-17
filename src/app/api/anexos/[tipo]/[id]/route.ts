@@ -84,7 +84,7 @@ export async function GET(
   context: { params: Promise<{ tipo: string; id: string }> },
 ) {
   const guarda = await exigirSessao();
-
+  if (guarda.erro) return guarda.erro;
 
   const { tipo, id } = await context.params;
 
@@ -119,21 +119,8 @@ export async function POST(
   req: Request,
   context: { params: Promise<{ tipo: string; id: string }> },
 ) {
-  const guarda = await exigirSessao();
-
-  if (!guarda.ok) {
-    return NextResponse.json(
-      { erro: "Sessão inválida." },
-      { status: 401 },
-    );
-  }
-
-  if (!podeGravar(guarda.sessao)) {
-    return NextResponse.json(
-      { erro: "Seu perfil não possui permissão para anexar arquivos." },
-      { status: 403 },
-    );
-  }
+  const guarda = await podeGravar();
+  if (guarda.erro) return guarda.erro;
 
   const { tipo, id } = await context.params;
 
@@ -262,21 +249,8 @@ export async function DELETE(
   _req: Request,
   context: { params: Promise<{ tipo: string; id: string }> },
 ) {
-  const guarda = await exigirSessao();
-
-  if (!guarda.ok) {
-    return NextResponse.json(
-      { erro: "Sessão inválida." },
-      { status: 401 },
-    );
-  }
-
-  if (!podeGravar(guarda.sessao)) {
-    return NextResponse.json(
-      { erro: "Seu perfil não possui permissão para remover anexos." },
-      { status: 403 },
-    );
-  }
+  const guarda = await podeGravar();
+  if (guarda.erro) return guarda.erro;
 
   const { tipo, id } = await context.params;
 
