@@ -1,0 +1,44 @@
+{
+  "name": "fluxomed-saas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FluxoMed Maricá — plataforma de gestão financeira com acesso por usuário",
+  "scripts": {
+    "dev": "next dev -p 3100",
+    "build": "prisma generate && next build",
+    "start": "next start -p 3100",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "criar-admin": "node --env-file=.env.local --import tsx scripts/criar-admin.ts",
+    "testar-motor": "node --import tsx scripts/testar-motor.ts",
+    "testar-integracao": "node --env-file=.env.local --import tsx scripts/testar-integracao.ts",
+    "testar-permissoes": "node --env-file=.env.local --import tsx scripts/testar-permissoes.ts",
+    "testar": "npm run testar-motor && npm run testar-integracao",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.6",
+    "next": "^15.5.21",
+    "nodemailer": "^6.9.16",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.5",
+    "@types/nodemailer": "^6.4.17",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "prisma": "^6.2.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20 <23"
+  }
+}

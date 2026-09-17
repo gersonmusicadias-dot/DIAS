@@ -1,0 +1,41 @@
+﻿FLUXOMED MARICÁ
+PACOTE PARA AUDITORIA COMPLETA
+Criado em: 13/09/2026 23:49:05
+
+ORIGEM:
+C:\Fluxomed
+
+INCLUÍDO:
+- src
+- scripts
+- public
+- prisma
+- package.json
+- package-lock.json
+- tsconfig.json
+- next.config.mjs
+- next-env.d.ts
+- vercel.json
+- .gitignore
+- README.md
+
+EXCLUÍDO INTENCIONALMENTE:
+- .env
+- .env.local
+- qualquer .env*
+- senhas e segredos
+- node_modules
+- .next
+- .vercel
+- .claude
+- backups históricos
+- pacotes ZIP anteriores
+- arquivos de banco .db/.sqlite/.sqlite3
+
+OBJETIVO:
+Auditoria completa de código, regras financeiras, segurança,
+permissões, autenticação, sessões, APIs, interface, encoding,
+estrutura, testes e build.
+
+A auditoria poderá produzir uma versão corrigida separada,
+sem modificar o projeto original enviado.

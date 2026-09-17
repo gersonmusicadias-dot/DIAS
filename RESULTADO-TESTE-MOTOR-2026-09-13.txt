@@ -1,0 +1,89 @@
+========================================================================
+MOTOR FINANCEIRO — paridade com as regras homologadas
+========================================================================
+
+  [OK]  1. Sem eventos, o líquido é zero
+  [OK]  1b. Só NORMAL soma
+  [OK]  1c. REVERSAL neutraliza o original
+  [OK]  1d. Estorno maior que o recebido não vira negativo
+  [OK]  1e. O evento original permanece na lista após o estorno   -> append-only: nada é apagado
+  [OK]  2. Custo 8.000, pago 8.000, estornado 3.000 → pago 5.000   -> 5000
+  [OK]  2b. E o saldo volta a 3.000   -> 3000
+  [OK]  3. NF 10.000, recebido 10.000, estornado 4.000 → recebido 6.000   -> 6000
+  [OK]  3b. E o saldo a receber volta a 4.000   -> 4000
+  [OK]  3c. Nota apenas prevista não fatura nada
+  [OK]  4. Recibo 5.000 com 2.000 recebidos → saldo 3.000
+  [OK]  5. Receitas realizadas = 6.000 (NF) + 2.000 (recibo)   -> 8000
+  [OK]  5b. Receitas previstas = 4.000 + 10.000 + 3.000   -> 17000
+  [OK]  5c. Despesas realizadas = 5.000   -> 5000
+  [OK]  5d. Despesas previstas = 3.000   -> 3000
+  [OK]  5e. Resultado realizado = receitas − despesas realizadas   -> 3000
+  [OK]  5f. Resultado projetado inclui o previsto dos dois lados   -> 17000
+  [OK]  5g. A composição tem as três origens
+  [OK]  5h. Competência sem lançamento zera tudo
+  [OK]  6. Estorno de pagamento de custo ENTRA no caixa   -> 3000
+  [OK]  6b. Estorno de recebimento de nota SAI do caixa   -> -4000
+  [OK]  6c. Pagamento de custo sai com sinal negativo
+  [OK]  6d. Saldo realizado bate com a soma dos movimentos   -> 18000
+  [OK]  6e. As linhas saem em ordem cronológica
+  [OK]  6f. O saldo acumulado da última linha é o saldo final
+  [OK]  6g. Entradas do caixa incluem devolucao de pagamento estornado   -> 15000
+  [OK]  6h. Saidas do caixa incluem devolucao de recebimento estornado   -> 12000
+  [OK]  6i. Equacao do caixa reconcilia sem somar estornos outra vez   -> 15000 + 15000 - 12000 = 18000
+  [OK]  6j. Estorno dentro do periodo conta mesmo com original fora do filtro   -> entradas=400; saidas=0; final=5400
+  [OK]  6k. Total informativo de estornos nao altera a equacao   -> 400
+  [OK]  7. Previsões não são gravadas: nascem dos saldos em aberto   -> 4
+  [OK]  7b. Id da previsão é determinístico
+  [OK]  7c. Recalcular dá exatamente os mesmos ids
+  [OK]  7d. Consolidado soma realizado e previsto   -> 9
+  [OK]  7e. Previsão sem data fica de fora do cálculo, mas visível
+  [OK]  8. Sem saldo inicial, o caixa se declara não configurado
+  [OK]  8b. E não inventa saldo: parte de zero
+  [OK]  9. Saldo atual do painel = saldo final do realizado
+  [OK]  9b. Saldo projetado = saldo final do consolidado
+  [OK]  9c. Entradas e saídas vêm do realizado
+  [OK]  10. Deslocar competência dentro do ano
+  [OK]  10b. Deslocar cruzando o ano
+  [OK]  10c. Janela de 12 meses fecha certo
+  [OK]  10d. Entrada inválida não quebra
+  [OK]  11. Base vazia não inventa número
+  [OK]  11b. Base vazia não gera movimento de caixa
+  [OK]  12. Milhar com centavos   -> 8000
+  [OK]  12b. Milhar sem centavos   -> 8000
+  [OK]  12c. Milhao   -> 1234567.89
+  [OK]  12d. So virgula   -> 1234.56
+  [OK]  12e. Ponto decimal do teclado numerico   -> 1234.56
+  [OK]  12f. Inteiro simples
+  [OK]  12g. Com espacos   -> 1500.5
+  [OK]  12h. Negativo   -> -250.75
+  [OK]  12i. Vazio nao vira zero   -> vazio tem de ser recusado, nao virar 0
+  [OK]  12j. Texto nao vira numero
+  [OK]  12k. Duas virgulas sao recusadas
+  [OK]  12l. Centavos com um digito   -> 10.5
+  [OK]  13. Data ISO vira brasileira   -> 15/09/2026
+  [OK]  13b. Data ausente nao quebra
+  [OK]  13c. Competencia vira MM/AAAA   -> 09/2026
+  [OK]  13d. Zero e exibido, nao escondido   -> R$ 0,00
+  [OK]  14. Vencidos sao exatamente os que estao em aberto e ja passaram   -> nota:n1,custo:c1,custo:c3
+  [OK]  14b. Custo pago nao vira alerta, por mais antigo que seja
+  [OK]  14c. Recibo recebido por inteiro tambem sai da lista
+  [OK]  14c2. Recibo substituido nao reaparece em alertas ou vencidos
+  [OK]  14d. Nota nao emitida nao cobra ninguem
+  [OK]  14e. O valor do alerta e o SALDO, nao o valor do documento   -> 600 previstos - 250 pagos
+  [OK]  14f. Proximos sao os que vencem dentro da janela   -> custo:c4
+  [OK]  14g. O que vence depois da janela fica de fora
+  [OK]  14h. Total vencido a pagar   -> 8350
+  [OK]  14i. Total vencido a receber   -> 10000
+  [OK]  14j. O mais atrasado vem primeiro   -> nota:n1
+  [OK]  14k. Base vazia nao gera alerta
+  [OK]  14l. O que vence hoje conta como proximo, nao como vencido   -> 0
+  [OK]  14m. Prazo escrito como se fala
+  [OK]  15. Periodo anterior a referencia retrocede corretamente o saldo   -> inicial=1100; final=1000
+  [OK]  15b. Na data de referencia o saldo inicial e exatamente o configurado   -> inicial=1000; final=800
+  [OK]  15c. Periodo posterior carrega apenas movimentos desde a referencia   -> inicial=800; final=500
+  [OK]  15d. Os tres modos usam o mesmo saldo inicial do periodo   -> 800/800/800
+  [OK]  15e. Saldo inicial negativo e preservado   -> inicial=-250; final=-250
+
+------------------------------------------------------------------------
+TOTAL: 81 verificacoes | 81 passaram | 0 falharam
+------------------------------------------------------------------------

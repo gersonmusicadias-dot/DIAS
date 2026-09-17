@@ -1,0 +1,1705 @@
+﻿html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body:has(.fx-login) {
+  overflow: hidden;
+}
+
+.fx-login,
+.fx-login * {
+  box-sizing: border-box;
+}
+
+.fx-login {
+  position: fixed;
+  inset: 0;
+
+  width: 100vw;
+  height: 100dvh;
+
+  overflow: hidden;
+
+  font-family:
+    Inter,
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  color: #eef8ff;
+
+  background-color: #051827;
+
+  background-image:
+    linear-gradient(rgba(0,182,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,182,255,.05) 1px, transparent 1px),
+    radial-gradient(
+      ellipse 50% 40% at 16% 26%,
+      rgba(0,182,255,.11),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 86% 74%,
+      rgba(82,144,214,.08),
+      transparent 60%
+    );
+
+  background-size:
+    44px 44px,
+    44px 44px,
+    100% 100%,
+    100% 100%;
+}
+
+
+/* ============================================================
+   GRID PRINCIPAL
+   ============================================================ */
+
+.fx-grid {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 1700px;
+  height: 100%;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns:
+    30%
+    minmax(430px, 1fr)
+    34%;
+
+  align-items: stretch;
+}
+
+
+/* ============================================================
+   TEMA
+   ============================================================ */
+
+.fx-tema {
+  position: fixed;
+
+  top: 18px;
+  right: 26px;
+
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  font-size: 12px;
+
+  color: #7d9aac;
+}
+
+.fx-tema span.ativo {
+  color: #ffffff;
+}
+
+.fx-tema-switch {
+  width: 46px;
+  height: 25px;
+
+  padding: 3px;
+
+  border: 1px solid rgba(0,182,255,.38);
+  border-radius: 999px;
+
+  background: #0b70ab;
+
+  cursor: pointer;
+}
+
+.fx-tema-switch i {
+  display: block;
+
+  width: 17px;
+  height: 17px;
+
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  transition: transform .2s ease;
+}
+
+html.dark .fx-tema-switch i {
+  transform: translateX(19px);
+}
+
+
+/* ============================================================
+   LATERAIS
+   ============================================================ */
+
+.fx-lateral {
+  min-width: 0;
+
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.fx-esquerda {
+  opacity: .65;
+}
+
+.fx-direita {
+  opacity: .70;
+}
+
+
+/* ============================================================
+   PAINEL ESQUERDO
+   ============================================================ */
+
+.fx-painel-esquerdo {
+  overflow: hidden;
+
+  border: 1px solid rgba(0,182,255,.10);
+  border-radius: 13px;
+
+  background: rgba(8,40,65,.40);
+}
+
+.fx-bloco {
+  padding: 13px 14px;
+
+  border-bottom:
+    1px solid rgba(0,182,255,.10);
+}
+
+.fx-bloco:last-child {
+  border-bottom: 0;
+}
+
+.fx-bloco h3,
+.fx-card-direito h3 {
+  margin: 0 0 8px;
+
+  color: #aac1d0;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: .06em;
+}
+
+.fx-grafico-linha {
+  width: 100%;
+  height: 78px;
+
+  fill: none;
+
+  stroke: #00b6ff;
+  stroke-width: 2;
+}
+
+.fx-meses {
+  display: flex;
+  justify-content: space-between;
+
+  color: #6b899c;
+
+  font-size: 8px;
+}
+
+.fx-donut-area {
+  display: flex;
+  align-items: center;
+
+  gap: 28px;
+}
+
+.fx-donut {
+  width: 66px;
+  height: 66px;
+
+  flex: 0 0 66px;
+
+  position: relative;
+
+  border-radius: 50%;
+
+  background:
+    conic-gradient(
+      rgb(0,212,255) 0 38%,
+      rgb(0,123,255) 38% 72%,
+      rgb(255,149,0) 72% 100%
+    );
+}
+
+.fx-donut::after {
+  content: "";
+
+  position: absolute;
+  inset: 16px;
+
+  border-radius: 50%;
+
+  background: #092238;
+}
+
+.fx-legenda {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  font-size: 10px;
+}
+
+.fx-legenda span {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.fx-legenda i {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+}
+
+.fx-legenda .receita {
+  background: rgb(0,212,255);
+}
+
+.fx-legenda .despesa {
+  background: rgb(0,123,255);
+}
+
+.fx-legenda .resultado {
+  background: rgb(255,149,0);
+}
+
+.fx-valor-mes {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 17px;
+}
+
+.fx-positivo {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #26d79b;
+
+  font-size: 10px;
+}
+
+.fx-barras {
+  height: 26px;
+
+  margin-top: 8px;
+
+  display: flex;
+  align-items: flex-end;
+
+  gap: 4px;
+}
+
+.fx-barras i {
+  flex: 1;
+
+  border-radius: 4px;
+
+  background: rgba(0,182,255,.60);
+}
+
+.fx-semana {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 12px;
+}
+
+.fx-semana > div {
+  display: grid;
+
+  grid-template-columns:
+    auto 1fr;
+
+  gap: 2px 8px;
+
+  align-items: center;
+}
+
+.fx-semana strong {
+  grid-row: span 2;
+
+  font-size: 18px;
+}
+
+.fx-semana .vermelho {
+  color: #ff5f6d;
+}
+
+.fx-semana .azul {
+  color: #00b6ff;
+}
+
+.fx-semana span {
+  color: #7591a3;
+
+  font-size: 9px;
+}
+
+.fx-dre {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.fx-dre > div:not(.fx-resultado-liquido) {
+  display: grid;
+
+  grid-template-columns:
+    88px 1fr 58px;
+
+  align-items: center;
+
+  gap: 8px;
+
+  font-size: 9px;
+}
+
+.fx-dre > div > span {
+  color: #8ba4b5;
+}
+
+.fx-dre > div > strong {
+  text-align: right;
+
+  color: #abc2d0;
+
+  font-size: 9px;
+}
+
+.fx-dre > div > i {
+  height: 6px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: rgba(0,182,255,.10);
+}
+
+.fx-dre > div > i > b {
+  display: block;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #00b6ff,
+      #4cc8f0
+    );
+}
+
+.fx-resultado-liquido {
+  margin-top: 4px;
+  padding-top: 7px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  border-top:
+    1px solid rgba(0,182,255,.10);
+}
+
+.fx-resultado-liquido span,
+.fx-resultado-liquido strong {
+  color: #22db9b !important;
+
+  font-weight: 800;
+}
+
+
+/* ============================================================
+   CENTRO
+   ============================================================ */
+
+.fx-centro {
+  min-width: 0;
+
+  padding: 20px 16px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+}
+
+.fx-centro-conteudo {
+  width: 100%;
+  max-width: 480px;
+}
+
+.fx-logo-area {
+  margin-bottom: 24px;
+
+  display: flex;
+
+  justify-content: center;
+}
+
+.fx-logo {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  color: #ffffff;
+}
+
+.fx-logo svg {
+  display: block;
+}
+
+.fx-logo-texto {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+}
+
+.fx-logo-texto strong {
+  margin-top: 10px;
+
+  color: #ffffff;
+
+  font-size: 16px;
+
+  letter-spacing: .14em;
+}
+
+.fx-logo-texto span {
+  margin-top: 3px;
+
+  color: #00b6ff;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: .35em;
+}
+
+.fx-card-login {
+  padding: 36px 40px;
+
+  border:
+    1px solid rgba(0,182,255,.25);
+
+  border-radius: 20px;
+
+  background:
+    rgba(12,42,67,.90);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow:
+    0 0 48px -14px rgba(0,182,255,.24),
+    0 24px 56px -24px rgba(0,0,0,.55);
+}
+
+.fx-card-login h1 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 22px;
+
+  font-weight: 800;
+
+  letter-spacing: -.02em;
+}
+
+.fx-card-login > p {
+  margin: 6px 0 0;
+
+  color: #819dad;
+
+  font-size: 14px;
+}
+
+
+/* ============================================================
+   FORMULÁRIO
+   ============================================================ */
+
+.fx-form {
+  margin-top: 28px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 20px;
+}
+
+.fx-campo-grupo label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fx-campo {
+  position: relative;
+}
+
+.fx-campo > svg {
+  position: absolute;
+
+  left: 14px;
+  top: 50%;
+
+  width: 17px;
+  height: 17px;
+
+  transform:
+    translateY(-50%);
+
+  fill: none;
+
+  stroke: #7894a7;
+  stroke-width: 2;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fx-campo input {
+  width: 100%;
+  height: 48px;
+
+  padding:
+    0 44px 0 44px;
+
+  border:
+    1px solid #27465a;
+
+  border-radius: 9px;
+
+  background:
+    #0b2a42;
+
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+.fx-campo input::placeholder {
+  color: rgba(123,151,169,.60);
+}
+
+.fx-campo input:focus {
+  border-color: #00b6ff;
+
+  box-shadow:
+    0 0 0 1px #00b6ff;
+}
+
+.fx-olho {
+  position: absolute;
+
+  right: 10px;
+  top: 50%;
+
+  width: 34px;
+  height: 34px;
+
+  transform:
+    translateY(-50%);
+
+  display: grid;
+  place-items: center;
+
+  border: 0;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.fx-olho svg {
+  width: 18px;
+  height: 18px;
+
+  fill: none;
+
+  stroke: #7999ad;
+  stroke-width: 2;
+}
+
+.fx-recuperar {
+  margin-top: -6px;
+
+  display: flex;
+
+  justify-content: flex-end;
+}
+
+.fx-recuperar button {
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #00b6ff;
+
+  font-family: inherit;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.fx-erro,
+.fx-aviso {
+  margin: -6px 0 0;
+
+  font-size: 12px;
+}
+
+.fx-erro {
+  color: #ff8790;
+}
+
+.fx-aviso {
+  color: #75bce6;
+}
+
+.fx-entrar {
+  width: 100%;
+  height: 56px;
+
+  border: 0;
+
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #00a7f8,
+      #13c6da
+    );
+
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: .08em;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 24px rgba(0,182,255,.18);
+}
+
+.fx-entrar:hover {
+  opacity: .90;
+}
+
+.fx-entrar:disabled {
+  opacity: .60;
+
+  cursor: wait;
+}
+
+.fx-versao {
+  margin: 18px 0 0;
+
+  text-align: center;
+
+  color: rgba(120,150,169,.60);
+
+  font-size: 11px;
+}
+
+
+/* ============================================================
+   DIREITA
+   ============================================================ */
+
+.fx-card-direito {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 14px;
+
+  border:
+    1px solid rgba(0,182,255,.10);
+
+  border-radius: 13px;
+
+  background:
+    rgba(8,40,65,.40);
+}
+
+.fx-crescimento {
+  min-height: 360px;
+}
+
+.fx-grafico-crescimento {
+  position: relative;
+
+  height: 270px;
+}
+
+.fx-colunas {
+  position: absolute;
+
+  inset: 35px 15px 12px;
+
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-around;
+}
+
+.fx-colunas i {
+  width: 25px;
+
+  border-radius:
+    5px 5px 0 0;
+
+  background:
+    linear-gradient(
+      #008de6,
+      #0c5ca9
+    );
+}
+
+.fx-grafico-crescimento svg {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  fill: none;
+
+  stroke: #00b6ff;
+
+  stroke-width: 2;
+}
+
+.fx-modulos {
+  margin-top: 20px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 28px 20px;
+}
+
+.fx-modulo {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+.fx-hexagono {
+  position: relative;
+
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+  place-items: center;
+}
+
+.fx-hexagono::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 1px;
+
+  clip-path:
+    polygon(
+      50% 5%,
+      89% 28%,
+      89% 72%,
+      50% 95%,
+      11% 72%,
+      11% 28%
+    );
+
+  background:
+    rgba(0,182,255,.45);
+}
+
+.fx-hexagono::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 4px;
+
+  clip-path:
+    polygon(
+      50% 5%,
+      89% 28%,
+      89% 72%,
+      50% 95%,
+      11% 72%,
+      11% 28%
+    );
+
+  background:
+    #08233a;
+}
+
+.fx-hexagono span {
+  position: relative;
+
+  z-index: 2;
+
+  color: #00b6ff;
+
+  font-size: 18px;
+}
+
+.fx-modulo small {
+  color: #7894a7;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: .04em;
+}
+
+
+/* ============================================================
+   TEMA CLARO
+   ============================================================ */
+
+html:not(.dark) .fx-login {
+  color: #15394f;
+
+  background-color: #eef7fb;
+
+  background-image:
+    linear-gradient(rgba(0,142,205,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,142,205,.045) 1px, transparent 1px),
+    radial-gradient(
+      ellipse 50% 40% at 16% 26%,
+      rgba(0,170,225,.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 86% 74%,
+      rgba(82,144,214,.06),
+      transparent 60%
+    );
+}
+
+html:not(.dark) .fx-tema {
+  color: #718999;
+}
+
+html:not(.dark) .fx-tema span.ativo {
+  color: #173d54;
+}
+
+html:not(.dark) .fx-card-login {
+  border-color:
+    rgba(0,143,205,.25);
+
+  background:
+    rgba(255,255,255,.88);
+
+  box-shadow:
+    0 0 42px -14px rgba(0,135,197,.18),
+    0 20px 50px -24px rgba(37,76,98,.22);
+}
+
+html:not(.dark) .fx-card-login h1,
+html:not(.dark) .fx-campo-grupo label {
+  color: #15394f;
+}
+
+html:not(.dark) .fx-card-login > p,
+html:not(.dark) .fx-versao {
+  color: #668294;
+}
+
+html:not(.dark) .fx-campo input {
+  border-color: #c8dce7;
+
+  background: #ffffff;
+
+  color: #16384f;
+}
+
+html:not(.dark) .fx-recuperar button {
+  color: #008fc8;
+}
+
+html:not(.dark) .fx-painel-esquerdo,
+html:not(.dark) .fx-card-direito {
+  border-color:
+    rgba(0,143,205,.16);
+
+  background:
+    rgba(255,255,255,.48);
+}
+
+html:not(.dark) .fx-bloco {
+  border-color:
+    rgba(0,143,205,.12);
+}
+
+html:not(.dark) .fx-bloco h3,
+html:not(.dark) .fx-card-direito h3,
+html:not(.dark) .fx-dre > div > span,
+html:not(.dark) .fx-semana span,
+html:not(.dark) .fx-modulo small {
+  color: #5d7889;
+}
+
+html:not(.dark) .fx-dre > div > strong {
+  color: #496778;
+}
+
+html:not(.dark) .fx-donut::after,
+html:not(.dark) .fx-hexagono::after {
+  background: #edf7fb;
+}
+
+
+/* ============================================================
+   RESPONSIVIDADE
+   ============================================================ */
+
+@media (max-width: 1200px) {
+  .fx-grid {
+    grid-template-columns:
+      29%
+      minmax(410px, 1fr)
+      31%;
+  }
+
+  .fx-lateral {
+    padding: 14px;
+  }
+
+  .fx-card-login {
+    padding:
+      30px 32px;
+  }
+}
+
+
+@media (max-width: 1024px) {
+  body:has(.fx-login) {
+    overflow: auto;
+  }
+
+  .fx-login {
+    position: relative;
+
+    min-height: 100dvh;
+    height: auto;
+
+    overflow: visible;
+  }
+
+  .fx-grid {
+    min-height: 100dvh;
+
+    grid-template-columns: 1fr;
+  }
+
+  .fx-centro {
+    grid-row: 1;
+
+    padding:
+      70px 20px 34px;
+  }
+
+  .fx-esquerda,
+  .fx-direita {
+    display: none;
+  }
+}
+
+
+@media (max-width: 520px) {
+  .fx-centro {
+    padding:
+      65px 14px 28px;
+  }
+
+  .fx-card-login {
+    padding:
+      27px 20px;
+
+    border-radius: 16px;
+  }
+
+  .fx-card-login h1 {
+    font-size: 20px;
+  }
+
+  .fx-logo svg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .fx-tema {
+    top: 14px;
+    right: 14px;
+  }
+}
+
+/* ============================================================
+   FLUXOMED MARICÁ — AJUSTE FINO FINAL DO LOGIN
+   ============================================================ */
+
+/* Mais profundidade e menos interferência das laterais */
+.fx-esquerda {
+  opacity: .52;
+}
+
+.fx-direita {
+  opacity: .56;
+}
+
+/* Centralização e enquadramento do conjunto principal */
+.fx-centro {
+  padding: 28px 18px 22px;
+}
+
+.fx-centro-conteudo {
+  max-width: 470px;
+}
+
+/* Logo coração + ECG */
+.fx-logo-area {
+  margin-bottom: 20px;
+}
+
+.fx-logo svg {
+  width: 66px;
+  height: 66px;
+  filter: drop-shadow(0 0 10px rgba(0,182,255,.10));
+}
+
+.fx-logo-texto strong {
+  margin-top: 8px;
+  font-size: 16px;
+  letter-spacing: .16em;
+}
+
+.fx-logo-texto span {
+  margin-top: 3px;
+  font-size: 11px;
+  letter-spacing: .38em;
+}
+
+/* Card principal */
+.fx-card-login {
+  padding: 34px 38px 36px;
+  border-color: rgba(0,182,255,.30);
+  border-radius: 19px;
+  background: rgba(10,39,63,.94);
+  box-shadow:
+    0 0 54px -18px rgba(0,182,255,.30),
+    0 26px 58px -28px rgba(0,0,0,.72);
+}
+
+.fx-card-login h1 {
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.fx-card-login > p {
+  margin-top: 7px;
+  color: #829eae;
+  font-size: 13px;
+}
+
+/* Formulário mais compacto e uniforme */
+.fx-form {
+  margin-top: 26px;
+  gap: 18px;
+}
+
+.fx-campo-grupo label {
+  margin-bottom: 7px;
+}
+
+.fx-campo input {
+  height: 47px;
+  border-color: #294b62;
+  background: #0c2c45;
+}
+
+.fx-campo input:hover {
+  border-color: #37647f;
+}
+
+.fx-campo input:focus {
+  border-color: #00b6ff;
+  box-shadow:
+    0 0 0 1px #00b6ff,
+    0 0 18px rgba(0,182,255,.08);
+}
+
+/* Recuperação de senha */
+.fx-recuperar {
+  margin-top: -5px;
+}
+
+.fx-recuperar button {
+  transition:
+    color .18s ease,
+    opacity .18s ease;
+}
+
+.fx-recuperar button:hover {
+  color: #4fd3ff;
+}
+
+/* Botão principal */
+.fx-entrar {
+  height: 54px;
+  border-radius: 9px;
+  background:
+    linear-gradient(
+      90deg,
+      #00a9f5 0%,
+      #08b9eb 52%,
+      #18c7d7 100%
+    );
+  box-shadow:
+    0 10px 28px rgba(0,182,255,.16);
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    opacity .18s ease;
+}
+
+.fx-entrar:hover:not(:disabled) {
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow:
+    0 13px 32px rgba(0,182,255,.23);
+}
+
+.fx-entrar:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Versão mais discreta */
+.fx-versao {
+  margin-top: 16px;
+  color: rgba(120,150,169,.48);
+}
+
+/* Painéis financeiros em segundo plano */
+.fx-painel-esquerdo,
+.fx-card-direito {
+  border-color: rgba(0,182,255,.09);
+  background: rgba(7,35,57,.32);
+}
+
+.fx-grafico-linha,
+.fx-grafico-crescimento svg {
+  opacity: .88;
+}
+
+.fx-modulos {
+  opacity: .84;
+}
+
+/* Seletor de tema */
+.fx-tema {
+  top: 22px;
+  right: 30px;
+  opacity: .88;
+}
+
+/* ============================================================
+   AJUSTE PARA NOTEBOOKS / TELAS COM MENOR ALTURA
+   ============================================================ */
+
+@media (min-width: 1025px) and (max-height: 850px) {
+  .fx-centro {
+    padding-top: 18px;
+    padding-bottom: 14px;
+  }
+
+  .fx-logo-area {
+    margin-bottom: 13px;
+  }
+
+  .fx-logo svg {
+    width: 57px;
+    height: 57px;
+  }
+
+  .fx-logo-texto strong {
+    margin-top: 5px;
+    font-size: 14px;
+  }
+
+  .fx-logo-texto span {
+    font-size: 9px;
+  }
+
+  .fx-card-login {
+    padding: 27px 34px 29px;
+  }
+
+  .fx-form {
+    margin-top: 21px;
+    gap: 15px;
+  }
+
+  .fx-campo input {
+    height: 44px;
+  }
+
+  .fx-entrar {
+    height: 50px;
+  }
+
+  .fx-versao {
+    margin-top: 11px;
+  }
+
+  .fx-crescimento {
+    min-height: 320px;
+  }
+
+  .fx-grafico-crescimento {
+    height: 235px;
+  }
+}
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .fx-centro-conteudo {
+    max-width: 470px;
+  }
+
+  .fx-centro {
+    min-height: 100dvh;
+    box-sizing: border-box;
+  }
+
+  .fx-logo-area {
+    margin-bottom: 20px;
+  }
+}
+
+/* ============================================================
+   CELULAR
+   ============================================================ */
+
+@media (max-width: 520px) {
+  .fx-centro {
+    padding:
+      68px 16px 26px;
+  }
+
+  .fx-centro-conteudo {
+    max-width: 100%;
+  }
+
+  .fx-logo-area {
+    margin-bottom: 18px;
+  }
+
+  .fx-logo svg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .fx-card-login {
+    padding: 27px 21px 29px;
+    border-radius: 16px;
+  }
+
+  .fx-form {
+    margin-top: 24px;
+    gap: 17px;
+  }
+
+  .fx-campo input {
+    height: 48px;
+  }
+
+  .fx-entrar {
+    height: 52px;
+  }
+
+  .fx-tema {
+    top: 15px;
+    right: 15px;
+  }
+}
+
+
+/* ============================================================
+   FLUXOMED MARICÁ — AJUSTE FINO DEFINITIVO DO MODO CLARO
+   ============================================================ */
+
+/* Fundo geral: mantém claro, mas com mais profundidade */
+html:not(.dark) .fx-login {
+  color: #17384f;
+
+  background-color: #edf6fa;
+
+  background-image:
+    linear-gradient(rgba(0,135,195,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,135,195,.055) 1px, transparent 1px),
+
+    radial-gradient(
+      ellipse 48% 42% at 18% 28%,
+      rgba(0,174,232,.09),
+      transparent 62%
+    ),
+
+    radial-gradient(
+      ellipse 48% 42% at 82% 70%,
+      rgba(37,130,191,.07),
+      transparent 62%
+    );
+}
+
+
+/* ============================================================
+   LOGO — MAIS CONTRASTE
+   ============================================================ */
+
+html:not(.dark) .fx-logo {
+  color: #153b53 !important;
+}
+
+html:not(.dark) .fx-logo svg {
+  color: #153b53 !important;
+  filter:
+    drop-shadow(0 2px 5px rgba(27,70,96,.10));
+}
+
+html:not(.dark) .fx-logo-texto strong {
+  color: #15364d !important;
+}
+
+html:not(.dark) .fx-logo-texto span {
+  color: #009fdf !important;
+}
+
+
+/* ============================================================
+   CARD CENTRAL
+   ============================================================ */
+
+html:not(.dark) .fx-card-login {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.97),
+      rgba(244,250,253,.96)
+    ) !important;
+
+  border-color:
+    rgba(0,141,201,.32) !important;
+
+  box-shadow:
+    0 18px 46px rgba(52,91,114,.14),
+    0 0 35px rgba(0,153,214,.05) !important;
+}
+
+html:not(.dark) .fx-card-login h1 {
+  color: #15374e !important;
+}
+
+html:not(.dark) .fx-card-login > p {
+  color: #607d90 !important;
+}
+
+
+/* ============================================================
+   LABELS
+   ============================================================ */
+
+html:not(.dark) .fx-campo-grupo label {
+  color: #17384f !important;
+}
+
+
+/* ============================================================
+   CAMPOS — CLAROS DE VERDADE
+   ============================================================ */
+
+html:not(.dark) .fx-campo input {
+  background: #ffffff !important;
+
+  border-color: #b9d2df !important;
+
+  color: #18384f !important;
+
+  box-shadow:
+    inset 0 1px 2px rgba(36,78,102,.03) !important;
+}
+
+html:not(.dark) .fx-campo input::placeholder {
+  color: #879eac !important;
+}
+
+html:not(.dark) .fx-campo input:hover {
+  border-color: #91bed3 !important;
+}
+
+html:not(.dark) .fx-campo input:focus {
+  border-color: #00a6e5 !important;
+
+  box-shadow:
+    0 0 0 3px rgba(0,166,229,.10) !important;
+}
+
+
+/* Ícones dos campos */
+html:not(.dark) .fx-campo > svg,
+html:not(.dark) .fx-olho svg {
+  stroke: #5d91ac !important;
+}
+
+
+/* ============================================================
+   RECUPERAÇÃO DE SENHA
+   ============================================================ */
+
+html:not(.dark) .fx-recuperar button {
+  color: #008fc9 !important;
+}
+
+html:not(.dark) .fx-recuperar button:hover {
+  color: #006f9f !important;
+}
+
+
+/* ============================================================
+   BOTÃO ENTRAR
+   ============================================================ */
+
+html:not(.dark) .fx-entrar {
+  background:
+    linear-gradient(
+      90deg,
+      #00a5e8 0%,
+      #08b5e8 52%,
+      #18c1d1 100%
+    ) !important;
+
+  color: #ffffff !important;
+
+  box-shadow:
+    0 9px 24px rgba(0,150,210,.18) !important;
+}
+
+
+/* ============================================================
+   LATERAL ESQUERDA E DIREITA
+   Mais visíveis, mas ainda secundárias
+   ============================================================ */
+
+html:not(.dark) .fx-esquerda {
+  opacity: .74 !important;
+}
+
+html:not(.dark) .fx-direita {
+  opacity: .76 !important;
+}
+
+html:not(.dark) .fx-painel-esquerdo,
+html:not(.dark) .fx-card-direito {
+  background:
+    rgba(255,255,255,.52) !important;
+
+  border-color:
+    rgba(0,133,190,.18) !important;
+}
+
+
+/* Títulos das laterais */
+html:not(.dark) .fx-bloco h3,
+html:not(.dark) .fx-card-direito h3 {
+  color: #496c80 !important;
+}
+
+
+/* Textos auxiliares */
+html:not(.dark) .fx-meses,
+html:not(.dark) .fx-legenda,
+html:not(.dark) .fx-semana span,
+html:not(.dark) .fx-dre > div > span,
+html:not(.dark) .fx-modulo small {
+  color: #678697 !important;
+}
+
+
+/* Valores laterais */
+html:not(.dark) .fx-valor-mes,
+html:not(.dark) .fx-dre > div > strong {
+  color: #385e73 !important;
+}
+
+
+/* Mantém positivos destacados */
+html:not(.dark) .fx-positivo,
+html:not(.dark) .fx-resultado-liquido span,
+html:not(.dark) .fx-resultado-liquido strong {
+  color: #159f78 !important;
+}
+
+
+/* Gráficos */
+html:not(.dark) .fx-grafico-linha,
+html:not(.dark) .fx-grafico-crescimento svg {
+  stroke: #16aee5 !important;
+  opacity: .88 !important;
+}
+
+html:not(.dark) .fx-barras i {
+  background:
+    rgba(20,168,222,.62) !important;
+}
+
+html:not(.dark) .fx-colunas i {
+  background:
+    linear-gradient(
+      #159fdf,
+      #4e8dbd
+    ) !important;
+}
+
+
+/* Barras da DRE */
+html:not(.dark) .fx-dre > div > i {
+  background:
+    rgba(0,145,205,.10) !important;
+}
+
+html:not(.dark) .fx-dre > div > i > b {
+  background:
+    linear-gradient(
+      90deg,
+      #12a9df,
+      #64c8e8
+    ) !important;
+}
+
+
+/* ============================================================
+   MÓDULOS DA DIREITA
+   ============================================================ */
+
+html:not(.dark) .fx-hexagono::before {
+  background:
+    rgba(0,155,215,.40) !important;
+}
+
+html:not(.dark) .fx-hexagono::after {
+  background:
+    #edf7fb !important;
+}
+
+html:not(.dark) .fx-hexagono span {
+  color: #058fca !important;
+}
+
+
+/* ============================================================
+   SELETOR CLARO / ESCURO
+   ============================================================ */
+
+html:not(.dark) .fx-tema {
+  opacity: 1 !important;
+  color: #708999 !important;
+}
+
+html:not(.dark) .fx-tema span.ativo {
+  color: #173a51 !important;
+  font-weight: 600;
+}
+
+html:not(.dark) .fx-tema-switch {
+  background: #1697cf !important;
+  border-color: rgba(0,135,195,.38) !important;
+}
+
+html:not(.dark) .fx-tema-switch i {
+  background: #ffffff !important;
+}
+
+
+/* ============================================================
+   VERSÃO
+   ============================================================ */
+
+html:not(.dark) .fx-versao {
+  color: #637f91 !important;
+}
+

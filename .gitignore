@@ -1,0 +1,27 @@
+node_modules/
+.next/
+.env
+.env.local
+.env*.local
+.outbox/
+prisma/dev.db
+prisma/dev.db-journal
+*.tsbuildinfo
+next-env.d.ts
+
+.vercel
+.env*
+!.env.example
+
+# backups e auditorias locais (não fazem parte do código-fonte)
+*.zip
+*.bak
+*.bak-*
+*.backup-*
+*.backup.*
+*.before-*
+*.corrompido-*
+backups/
+src-backup-*/
+Fluxomed-AUDITORIA-*/
+AUDITORIA-VISUAL-FLUXOMED/

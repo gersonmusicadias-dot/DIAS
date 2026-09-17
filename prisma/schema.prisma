@@ -1,0 +1,389 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// Perfis de acesso. ADMIN cadastra usuÃƒÂ¡rios; os demais apenas operam.
+enum Papel {
+  ADMIN
+  OPERADOR
+  LEITURA
+}
+
+model Usuario {
+  id        String @id @default(cuid())
+  nome      String
+  email     String @unique
+  senhaHash String
+  papel     Papel  @default(OPERADOR)
+
+  ativo       Boolean @default(true)
+  /// Enquanto true, o usuÃƒÂ¡rio ÃƒÂ© obrigado a definir uma senha prÃƒÂ³pria antes
+  /// de acessar qualquer tela. Ãƒâ€° o que sustenta a senha provisÃƒÂ³ria.
+  trocarSenha Boolean @default(true)
+
+  ultimoAcesso DateTime?
+  convidadoEm  DateTime?
+  /// Quem cadastrou. Guardado como texto para nÃƒÂ£o travar a exclusÃƒÂ£o do autor.
+  convidadoPor String?
+
+  sessoes      Sessao[]
+  preferenciaNotificacao PreferenciaNotificacao?
+  notificacoesFinanceiras NotificacaoFinanceira[]
+  criadoEm     DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+  @@index([email])
+}
+
+
+model PreferenciaNotificacao {
+  id                  String   @id @default(cuid())
+  usuarioId           String   @unique
+  usuario             Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  emailNotificacao    String?
+  receberEmail        Boolean  @default(false)
+  notificarPagar      Boolean  @default(true)
+  notificarReceber    Boolean  @default(true)
+  notificarVencidos   Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+  @@index([usuarioId])
+}
+
+
+model NotificacaoFinanceira {
+  id                String   @id @default(cuid())
+  chave             String   @unique
+  usuarioId         String
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  direcao           String
+  origem            String
+  registroId        String
+  titulo            String
+  mensagem          String
+  vencimento        String
+  diasAntecedencia  Int
+  valor             Float
+  destino           String
+  lidaEm            DateTime?
+  emailEnviadoEm    DateTime?
+  emailErro          String?
+  criadoEm          DateTime @default(now())
+
+  @@index([usuarioId, criadoEm])
+  @@index([usuarioId, lidaEm])
+  @@index([vencimento])
+}
+
+/// SessÃƒÂ£o ativa. O refresh token sÃƒÂ³ existe aqui como hash: se o banco
+/// vazar, os tokens nÃƒÂ£o sÃƒÂ£o reutilizÃƒÂ¡veis.
+model Sessao {
+  id         String    @id @default(cuid())
+  usuarioId  String
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  navegador  String?
+  ip         String?
+  expiraEm   DateTime
+  revogadaEm DateTime?
+  criadaEm   DateTime  @default(now())
+  ultimaAtividadeEm DateTime @default(now())
+
+  @@index([usuarioId])
+  @@index([expiraEm])
+}
+
+/// Trilha do que aconteceu com contas de usuÃƒÂ¡rio. NÃƒÂ£o guarda senha nenhuma.
+model RegistroAcesso {
+  id       String   @id @default(cuid())
+  email    String
+  acao     String
+  sucesso  Boolean
+  detalhe  String?
+  ip       String?
+  criadoEm DateTime @default(now())
+
+  @@index([email])
+  @@index([criadoEm])
+}
+
+// ============================================================
+// MOTOR FINANCEIRO
+//
+// Portado do fluxomed_v2.html, cujas regras estÃƒÂ£o homologadas e cobertas
+// por 557 testes. Duas decisÃƒÂµes de modelagem que vieram de lÃƒÂ¡ e que fazem
+// diferenÃƒÂ§a:
+//
+// 1. Datas e competÃƒÂªncias sÃƒÂ£o TEXTO ("2026-09-15", "2026-09").
+//    Guardar como DateTime traria fuso horÃƒÂ¡rio para dentro de uma conta que
+//    nÃƒÂ£o tem hora nenhuma Ã¢â‚¬â€ vencimento ÃƒÂ© um dia, nÃƒÂ£o um instante. O motor
+//    original compara essas strings diretamente, e a comparaÃƒÂ§ÃƒÂ£o lexical de
+//    ISO jÃƒÂ¡ ÃƒÂ© cronolÃƒÂ³gica.
+//
+// 2. Pagamentos e recebimentos sÃƒÂ£o EVENTOS, nunca editados nem apagados.
+//    Corrigir ÃƒÂ© lanÃƒÂ§ar um REVERSAL que neutraliza o original. O valor ÃƒÂ©
+//    sempre positivo; o sinal ÃƒÂ© coisa de apresentaÃƒÂ§ÃƒÂ£o.
+// ============================================================
+
+enum TipoEvento {
+  NORMAL
+  REVERSAL
+}
+
+model Cliente {
+  id           String  @id @default(cuid())
+  razaoSocial  String
+  nomeFantasia String
+  cnpj         String?
+  ativo        Boolean @default(true)
+
+  medicoes     Medicao[]
+  notasFiscais NotaFiscal[]
+  recibos      Recibo[]
+
+  criadoEm     DateTime @default(now())
+
+  atualizadoEm  DateTime @updatedAt
+}
+
+model Categoria {
+  id    String  @id @default(cuid())
+  nome  String
+  tipo  String
+  ativa Boolean @default(true)
+
+  custos Custo[]
+
+  criadoEm     DateTime @default(now())
+
+  atualizadoEm  DateTime @updatedAt
+}
+
+model Custo {
+  id          String     @id @default(cuid())
+  descricao   String
+  tipo        String
+  categoriaId String?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
+
+  /// "AAAA-MM"
+  competencia   String
+  /// "AAAA-MM-DD"
+  vencimento    String
+  valorPrevisto Float
+  observacoes   String?
+
+  pagamentos PagamentoCusto[]
+
+  criadoEm     DateTime @default(now())
+
+  atualizadoEm  DateTime @updatedAt
+  anexo         AnexoLancamento?
+
+  @@index([competencia])
+  @@index([vencimento])
+}
+
+model PagamentoCusto {
+  id         String     @id @default(cuid())
+  custoId    String
+  custo      Custo      @relation(fields: [custoId], references: [id], onDelete: Cascade)
+  /// "AAAA-MM-DD"
+  data       String
+  /// Sempre positivo. O REVERSAL neutraliza, nÃƒÂ£o subtrai aqui.
+  valor      Float
+  tipo       TipoEvento @default(NORMAL)
+  estornoDe  String?
+  motivo     String?
+  observacao String?
+
+  criadoEm DateTime @default(now())
+
+  @@index([custoId])
+}
+
+model Medicao {
+  id                  String  @id @default(cuid())
+  clienteId           String
+  cliente             Cliente @relation(fields: [clienteId], references: [id])
+  identificador       String
+  competencia         String
+  periodoInicio       String
+  periodoFim          String
+    descricaoServicos   String?
+  valorPrevisto       Float
+  valorMedido         Float?
+  dataMedicao         String?
+  previsaoRecebimento String?
+  status              String  @default("A_MEDIR")
+
+  notasFiscais NotaFiscal[]
+  recibos      Recibo[]
+
+  criadoEm     DateTime @default(now())
+
+  atualizadoEm  DateTime @updatedAt
+  anexo         AnexoLancamento?
+
+  @@index([competencia])
+  @@index([clienteId])
+}
+
+model NotaFiscal {
+  id        String   @id @default(cuid())
+  clienteId String
+  cliente   Cliente  @relation(fields: [clienteId], references: [id])
+  medicaoId String?
+  medicao   Medicao? @relation(fields: [medicaoId], references: [id])
+
+  numero              String
+  competencia         String
+  /// Vazio enquanto a nota ÃƒÂ© apenas prevista.
+  dataEmissao         String?
+  valorPrevisto       Float
+  valorNota           Float
+  previsaoRecebimento String?
+  status              String  @default("PREVISTA")
+
+  recebimentos RecebimentoNota[]
+
+  criadoEm     DateTime @default(now())
+
+  atualizadoEm  DateTime @updatedAt
+  anexo         AnexoLancamento?
+
+  @@index([competencia])
+  @@index([clienteId])
+}
+
+model RecebimentoNota {
+  id         String     @id @default(cuid())
+  notaId     String
+  nota       NotaFiscal @relation(fields: [notaId], references: [id], onDelete: Cascade)
+  data       String
+  valor      Float
+  tipo       TipoEvento @default(NORMAL)
+  estornoDe  String?
+  motivo     String?
+  observacao String?
+
+  criadoEm DateTime @default(now())
+
+  @@index([notaId])
+}
+
+model Recibo {
+  id        String   @id @default(cuid())
+  clienteId String
+  cliente   Cliente  @relation(fields: [clienteId], references: [id])
+  medicaoId String?
+  medicao   Medicao? @relation(fields: [medicaoId], references: [id])
+
+  identificador       String  @unique
+  descricao           String
+  origem              String  @default("AVULSO")
+  competencia         String
+  dataEmissao         String?
+  valorPrevisto       Float
+  valorRecibo         Float
+  previsaoRecebimento String?
+  status              String  @default("PREVISTO")
+
+
+  substituiReciboId  String?  @unique
+  substitui          Recibo?  @relation("SubstituicaoRecibo", fields: [substituiReciboId], references: [id], onDelete: Restrict)
+  substituidoPor     Recibo?  @relation("SubstituicaoRecibo")
+  versaoSubstituicao Int      @default(0)
+  motivoSubstituicao String?
+  substituidoEm      DateTime?
+  recebimentos RecebimentoRecibo[]
+
+  criadoEm     DateTime @default(now())
+
+  atualizadoEm  DateTime @updatedAt
+  anexo         AnexoLancamento?
+
+  @@index([competencia])
+  @@index([clienteId])
+}
+
+model RecebimentoRecibo {
+  id         String     @id @default(cuid())
+  reciboId   String
+  recibo     Recibo     @relation(fields: [reciboId], references: [id], onDelete: Cascade)
+  data       String
+  valor      Float
+  tipo       TipoEvento @default(NORMAL)
+  estornoDe  String?
+  motivo     String?
+  observacao String?
+
+  criadoEm DateTime @default(now())
+
+  @@index([reciboId])
+}
+
+/// Saldo inicial do caixa. Registro ÃƒÂºnico: o Fluxo de Caixa parte dele.
+model SaldoCaixa {
+  id             String   @id @default(cuid())
+  valor          Float
+  dataReferencia String
+  criadoEm     DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+}
+
+model LogAuditoria {
+  id          String   @id @default(cuid())
+  usuarioId   String?
+  usuarioNome String?
+  usuarioEmail String?
+  modulo      String
+  acao        String
+  registroId  String?
+  descricao   String?
+  antes       String?
+  depois      String?
+  ip          String?
+  criadoEm    DateTime @default(now())
+
+  @@index([criadoEm])
+  @@index([usuarioEmail])
+  @@index([modulo])
+  @@index([acao])
+}
+
+model AnexoLancamento {
+  id             String   @id @default(cuid())
+  nomeArquivo    String
+  mimeType       String   @default("application/pdf")
+  tamanhoBytes   Int
+  conteudo       Bytes
+
+  custoId        String?  @unique
+  custo          Custo?   @relation(fields: [custoId], references: [id], onDelete: Cascade)
+
+  medicaoId      String?  @unique
+  medicao        Medicao? @relation(fields: [medicaoId], references: [id], onDelete: Cascade)
+
+  notaFiscalId   String?      @unique
+  notaFiscal     NotaFiscal?  @relation(fields: [notaFiscalId], references: [id], onDelete: Cascade)
+
+  reciboId       String?  @unique
+  recibo         Recibo?      @relation(fields: [reciboId], references: [id], onDelete: Cascade)
+
+  criadoEm     DateTime @default(now())
+
+  atualizadoEm  DateTime @updatedAt
+  @@index([custoId])
+  @@index([medicaoId])
+  @@index([notaFiscalId])
+  @@index([reciboId])
+}
+
+
+

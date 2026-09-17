@@ -1,0 +1,7 @@
+{
+  "framework": "nextjs",
+  "regions": ["gru1"],
+  "crons": [
+    { "path": "/api/cron/notificacoes-vencimento", "schedule": "0 12 * * *" }
+  ]
+}
