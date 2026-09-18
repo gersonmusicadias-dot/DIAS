@@ -183,7 +183,7 @@ model Custo {
   criadoEm     DateTime @default(now())
 
   atualizadoEm  DateTime @updatedAt
-  anexo         AnexoLancamento?
+  anexos        AnexoLancamento[]
 
   @@index([competencia])
   @@index([vencimento])
@@ -228,7 +228,7 @@ model Medicao {
   criadoEm     DateTime @default(now())
 
   atualizadoEm  DateTime @updatedAt
-  anexo         AnexoLancamento?
+  anexos        AnexoLancamento[]
 
   @@index([competencia])
   @@index([clienteId])
@@ -255,7 +255,7 @@ model NotaFiscal {
   criadoEm     DateTime @default(now())
 
   atualizadoEm  DateTime @updatedAt
-  anexo         AnexoLancamento?
+  anexos        AnexoLancamento[]
 
   @@index([competencia])
   @@index([clienteId])
@@ -306,7 +306,7 @@ model Recibo {
   criadoEm     DateTime @default(now())
 
   atualizadoEm  DateTime @updatedAt
-  anexo         AnexoLancamento?
+  anexos        AnexoLancamento[]
 
   @@index([competencia])
   @@index([clienteId])
@@ -364,16 +364,16 @@ model AnexoLancamento {
   tamanhoBytes   Int
   conteudo       Bytes
 
-  custoId        String?  @unique
+  custoId        String?
   custo          Custo?   @relation(fields: [custoId], references: [id], onDelete: Cascade)
 
-  medicaoId      String?  @unique
+  medicaoId      String?
   medicao        Medicao? @relation(fields: [medicaoId], references: [id], onDelete: Cascade)
 
-  notaFiscalId   String?      @unique
+  notaFiscalId   String?
   notaFiscal     NotaFiscal?  @relation(fields: [notaFiscalId], references: [id], onDelete: Cascade)
 
-  reciboId       String?  @unique
+  reciboId       String?
   recibo         Recibo?      @relation(fields: [reciboId], references: [id], onDelete: Cascade)
 
   criadoEm     DateTime @default(now())

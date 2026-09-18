@@ -29,7 +29,7 @@ interface Documento {
   identificador?: string; descricao?: string; emitido?: number; foiEmitido?: boolean; origem?: string;
   substitui?: string | null; substituidoPor?: string | null; versaoSubstituicao?: number;
   motivoSubstituicao?: string | null; substituidoEm?: string | null;
-  anexo: { nomeArquivo: string; tamanhoBytes: number; mimeType?: string } | null;
+  anexos: { id: string; nomeArquivo: string; tamanhoBytes: number; mimeType?: string }[];
 }
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -813,7 +813,7 @@ export default function GerenciarDocumentos({
               </div>
               <div style={{ marginTop: 20 }}>
                 <label className="rotulo">Anexo (PDF, JPEG ou PNG)</label>
-                <AnexoPdf tipo={tipo} id={visualizando.id} anexoInicial={visualizando.anexo} somenteLeitura={somenteLeitura} />
+                <AnexoPdf tipo={tipo} id={visualizando.id} anexosIniciais={visualizando.anexos ?? []} somenteLeitura={somenteLeitura} />
               </div>
             </div>
           </div>

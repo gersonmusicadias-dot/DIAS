@@ -10,7 +10,7 @@ import GraficoCustosMensal from "@/components/GraficoCustosMensal";
 import AnexoPdf from "@/components/AnexoPdf";
 import CapturarFoto from "@/components/CapturarFoto";
 import { reconhecerComprovante } from "@/lib/ocr";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const TIPOS_COMPROVANTE_ACEITOS = "application/pdf,image/jpeg,image/png";
@@ -23,7 +23,7 @@ interface Custo {
   competencia: string; vencimento: string;
   previsto: number; pago: number; saldo: number;
   situacao: string; temMovimento: boolean;
-  anexo: { nomeArquivo: string; tamanhoBytes: number; mimeType?: string } | null;
+  anexos: { id: string; nomeArquivo: string; tamanhoBytes: number; mimeType?: string }[];
 }
 
 const real = (v: number) =>
@@ -62,8 +62,8 @@ export default function GerenciarCustos({
   // Comprovante anexado ao criar/editar: só vira anexo de verdade depois que
   // o custo é salvo (é quando existe um id para vincular). Até lá fica só
   // aqui, junto com a prévia e o que o OCR conseguiu ler dele.
-  const [comprovante, setComprovante] = useState<File | null>(null);
-  const [comprovantePreview, setComprovantePreview] = useState<string | null>(null);
+  const [comprovantes, setComprovantes] = useState<{ arquivo: File; preview: string | null }[]>([]);
+  const dataValorLidosRef = useRef(false);
   const [lendoComprovante, setLendoComprovante] = useState(false);
   const [mensagemComprovante, setMensagemComprovante] = useState<string | null>(null);
   const [cameraAberta, setCameraAberta] = useState(false);
@@ -107,31 +107,60 @@ export default function GerenciarCustos({
   }
 
   function limparComprovante() {
-    if (comprovantePreview) URL.revokeObjectURL(comprovantePreview);
-    setComprovante(null);
-    setComprovantePreview(null);
+    comprovantes.forEach((c) => c.preview && URL.revokeObjectURL(c.preview));
+    setComprovantes([]);
+    dataValorLidosRef.current = false;
     setMensagemComprovante(null);
     setLendoComprovante(false);
   }
 
-  async function processarComprovante(arquivo: File) {
+  function removerComprovante(indice: number) {
+    const removido = comprovantes[indice];
+    if (removido?.preview) URL.revokeObjectURL(removido.preview);
+    setComprovantes((atuais) => atuais.filter((_, i) => i !== indice));
+  }
+
+  // Vários comprovantes por custo: todos viram anexos, mas só o primeiro que
+  // o OCR conseguir ler preenche data e valor — os seguintes (verso, segunda
+  // via, foto extra) não sobrescrevem o que já foi preenchido.
+  async function processarComprovantes(arquivos: File[]) {
     setErro(null);
 
-    if (!["application/pdf", "image/jpeg", "image/png"].includes(arquivo.type)) {
-      setErro("Selecione um arquivo PDF, JPEG ou PNG.");
-      return;
+    const validos: File[] = [];
+    const recusados: string[] = [];
+    for (const arquivo of arquivos) {
+      if (!["application/pdf", "image/jpeg", "image/png"].includes(arquivo.type)) {
+        recusados.push(`${arquivo.name}: somente PDF, JPEG ou PNG.`);
+      } else if (arquivo.size > LIMITE_BYTES_COMPROVANTE) {
+        recusados.push(`${arquivo.name}: acima de 10 MB.`);
+      } else {
+        validos.push(arquivo);
+      }
     }
-    if (arquivo.size > LIMITE_BYTES_COMPROVANTE) {
-      setErro("O arquivo não pode ultrapassar 10 MB.");
-      return;
-    }
+    if (recusados.length) setErro(recusados.join(" "));
+    if (validos.length === 0) return;
 
-    if (comprovantePreview) URL.revokeObjectURL(comprovantePreview);
-    setComprovante(arquivo);
-    setComprovantePreview(arquivo.type.startsWith("image/") ? URL.createObjectURL(arquivo) : null);
+    setComprovantes((atuais) => [
+      ...atuais,
+      ...validos.map((arquivo) => ({
+        arquivo,
+        preview: arquivo.type.startsWith("image/") ? URL.createObjectURL(arquivo) : null,
+      })),
+    ]);
     setMensagemComprovante(null);
     setLendoComprovante(true);
 
+    try {
+      for (const arquivo of validos) {
+        if (dataValorLidosRef.current) break;
+        await lerComprovante(arquivo);
+      }
+    } finally {
+      setLendoComprovante(false);
+    }
+  }
+
+  async function lerComprovante(arquivo: File) {
     try {
       const resultado = await reconhecerComprovante(arquivo);
       const achados: string[] = [];
@@ -143,6 +172,7 @@ export default function GerenciarCustos({
         setValor(String(resultado.valor).replace(".", ","));
         achados.push("valor");
       }
+      if (achados.length) dataValorLidosRef.current = true;
       setMensagemComprovante(
         achados.length === 2
           ? "Data e valor identificados automaticamente — confira antes de salvar."
@@ -152,8 +182,6 @@ export default function GerenciarCustos({
       );
     } catch {
       setMensagemComprovante("Não foi possível ler o comprovante automaticamente. Preencha os campos manualmente.");
-    } finally {
-      setLendoComprovante(false);
     }
   }
 
@@ -217,14 +245,18 @@ export default function GerenciarCustos({
       const dados = await r.json();
       if (!r.ok) { setErro(dados.erro); return; }
 
-      if (comprovante && dados.custo?.id) {
-        const formData = new FormData();
-        formData.append("arquivo", comprovante);
-        const rAnexo = await fetch(`/api/anexos/custo/${dados.custo.id}`, { method: "POST", body: formData });
-        if (!rAnexo.ok) {
-          const erroAnexo = await rAnexo.json().catch(() => ({}));
-          setErro(`Custo salvo, mas o comprovante não pôde ser anexado: ${erroAnexo.erro ?? "erro desconhecido"}.`);
+      if (comprovantes.length && dados.custo?.id) {
+        const falhas: string[] = [];
+        for (const { arquivo } of comprovantes) {
+          const formData = new FormData();
+          formData.append("arquivo", arquivo);
+          const rAnexo = await fetch(`/api/anexos/custo/${dados.custo.id}`, { method: "POST", body: formData });
+          if (!rAnexo.ok) {
+            const erroAnexo = await rAnexo.json().catch(() => ({}));
+            falhas.push(`${arquivo.name}: ${erroAnexo.erro ?? "erro desconhecido"}`);
+          }
         }
+        if (falhas.length) setErro(`Custo salvo, mas nem todos os comprovantes foram anexados — ${falhas.join("; ")}.`);
       }
 
       limparFormulario();
@@ -493,40 +525,40 @@ export default function GerenciarCustos({
                       Anexe o comprovante ou tire uma foto — a data e o valor são preenchidos automaticamente quando identificados.
                     </p>
 
-                    {comprovante ? (
-                      <div className="fm-comprovante-preview">
-                        {comprovantePreview ? (
+                    {comprovantes.map((c, indice) => (
+                      <div key={`${c.arquivo.name}-${indice}`} className="fm-comprovante-preview" style={{ marginBottom: 8 }}>
+                        {c.preview ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={comprovantePreview} alt="Prévia do comprovante" className="fm-comprovante-miniatura" />
+                          <img src={c.preview} alt="Prévia do comprovante" className="fm-comprovante-miniatura" />
                         ) : (
                           <span className="fm-comprovante-icone">📎</span>
                         )}
-                        <span className="fm-comprovante-nome">{comprovante.name}</span>
-                        <button type="button" className="botao discreto mini" disabled={salvando} onClick={limparComprovante}>
+                        <span className="fm-comprovante-nome">{c.arquivo.name}</span>
+                        <button type="button" className="botao discreto mini" disabled={salvando} onClick={() => removerComprovante(indice)}>
                           Remover
                         </button>
                       </div>
-                    ) : (
-                      <div className="fm-comprovante-acoes">
-                        <label className={`botao discreto mini fm-anexo-pdf-botao ${salvando ? "desabilitado" : ""}`}>
-                          + Anexar arquivo
-                          <input
-                            type="file"
-                            accept={TIPOS_COMPROVANTE_ACEITOS}
-                            style={{ display: "none" }}
-                            disabled={salvando}
-                            onChange={(e) => {
-                              const arquivo = e.target.files?.[0];
-                              e.target.value = "";
-                              if (arquivo) processarComprovante(arquivo);
-                            }}
-                          />
-                        </label>
-                        <button type="button" className="botao discreto mini" disabled={salvando} onClick={() => setCameraAberta(true)}>
-                          📷 Tirar foto
-                        </button>
-                      </div>
-                    )}
+                    ))}
+                    <div className="fm-comprovante-acoes">
+                      <label className={`botao discreto mini fm-anexo-pdf-botao ${salvando ? "desabilitado" : ""}`}>
+                        {comprovantes.length ? "+ Anexar mais arquivos" : "+ Anexar arquivos"}
+                        <input
+                          type="file"
+                          multiple
+                          accept={TIPOS_COMPROVANTE_ACEITOS}
+                          style={{ display: "none" }}
+                          disabled={salvando}
+                          onChange={(e) => {
+                            const arquivos = Array.from(e.target.files ?? []);
+                            e.target.value = "";
+                            if (arquivos.length) processarComprovantes(arquivos);
+                          }}
+                        />
+                      </label>
+                      <button type="button" className="botao discreto mini" disabled={salvando} onClick={() => setCameraAberta(true)}>
+                        📷 Tirar foto
+                      </button>
+                    </div>
 
                     {lendoComprovante && <p className="fm-comprovante-status">Lendo o comprovante…</p>}
                     {!lendoComprovante && mensagemComprovante && (
@@ -661,7 +693,8 @@ export default function GerenciarCustos({
       <CapturarFoto
         aberto={cameraAberta}
         aoFechar={() => setCameraAberta(false)}
-        aoCapturar={(arquivo) => processarComprovante(arquivo)}
+        aoCapturar={(arquivo) => processarComprovantes([arquivo])}
+        permitirVarias
       />
 
       {visualizando && (
@@ -685,7 +718,7 @@ export default function GerenciarCustos({
               </div>
               <div style={{ marginTop: 20 }}>
                 <label className="rotulo">Anexo (PDF, JPEG ou PNG)</label>
-                <AnexoPdf tipo="custo" id={visualizando.id} anexoInicial={visualizando.anexo} somenteLeitura={somenteLeitura} />
+                <AnexoPdf tipo="custo" id={visualizando.id} anexosIniciais={visualizando.anexos ?? []} somenteLeitura={somenteLeitura} />
               </div>
             </div>
           </div>

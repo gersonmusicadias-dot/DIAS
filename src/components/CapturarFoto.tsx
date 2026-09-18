@@ -8,11 +8,12 @@ import { useEffect, useRef, useState } from "react";
  * quando a pessoa confirma — "Tirar novamente" descarta e reabre a câmera.
  */
 export default function CapturarFoto({
-  aberto, aoFechar, aoCapturar,
+  aberto, aoFechar, aoCapturar, permitirVarias = false,
 }: {
   aberto: boolean;
   aoFechar: () => void;
   aoCapturar: (arquivo: File) => void;
+  permitirVarias?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -56,6 +57,13 @@ export default function CapturarFoto({
     };
   }, [aberto]);
 
+  // O <video> é desmontado enquanto a prévia da foto aparece; ao voltar para a
+  // câmera ele é um elemento novo e precisa receber o stream de novo.
+  useEffect(() => {
+    if (!aberto || foto) return;
+    if (videoRef.current && streamRef.current) videoRef.current.srcObject = streamRef.current;
+  }, [aberto, foto]);
+
   function capturar() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -74,6 +82,20 @@ export default function CapturarFoto({
         if (!blob) return;
         aoCapturar(new File([blob], `foto-${Date.now()}.jpg`, { type: "image/jpeg" }));
         fecharTudo();
+      },
+      "image/jpeg",
+      0.92
+    );
+  }
+
+  function usarEContinuar() {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        aoCapturar(new File([blob], `foto-${Date.now()}.jpg`, { type: "image/jpeg" }));
+        setFoto(null);
       },
       "image/jpeg",
       0.92
@@ -113,7 +135,10 @@ export default function CapturarFoto({
           {foto ? (
             <>
               <button type="button" className="botao discreto" onClick={() => setFoto(null)}>Tirar novamente</button>
-              <button type="button" className="botao" onClick={usarFoto}>Usar esta foto</button>
+              {permitirVarias && (
+                <button type="button" className="botao discreto" onClick={usarEContinuar}>Usar e tirar outra</button>
+              )}
+              <button type="button" className="botao" onClick={usarFoto}>{permitirVarias ? "Usar e concluir" : "Usar esta foto"}</button>
             </>
           ) : (
             <button type="button" className="botao" onClick={capturar} disabled={!!erro}>Capturar</button>

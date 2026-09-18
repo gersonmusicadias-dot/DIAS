@@ -18,7 +18,7 @@ export async function GET() {
     include: {
       categoria: { select: { id: true, nome: true } },
       pagamentos: true,
-      anexo: { select: { nomeArquivo: true, tamanhoBytes: true, mimeType: true } },
+      anexos: { select: { id: true, nomeArquivo: true, tamanhoBytes: true, mimeType: true }, orderBy: { criadoEm: "asc" } },
     },
     orderBy: [{ competencia: "desc" }, { vencimento: "asc" }],
   });
@@ -44,7 +44,7 @@ export async function GET() {
         // gravado divergir dos eventos.
         situacao: f.pago <= 0 ? "PREVISTO" : f.saldo > 0 ? "PARCIAL" : "PAGO",
         temMovimento: c.pagamentos.length > 0,
-        anexo: c.anexo,
+        anexos: c.anexos,
       };
     }),
   });

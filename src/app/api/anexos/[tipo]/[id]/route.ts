@@ -6,7 +6,8 @@ import { registrarAuditoria } from "@/lib/auditoria";
 export const runtime = "nodejs";
 
 const LIMITE_BYTES = 10 * 1024 * 1024;
-const TIPOS_ACEITOS = new Set(["application/pdf", "image/jpeg", "image/png"]);
+const MAX_ARQUIVOS_POR_ENVIO = 10;
+const TIPOS_ACEITOS =new Set(["application/pdf", "image/jpeg", "image/png"]);
 
 type TipoLancamento = "custo" | "medicao" | "nota" | "recibo";
 
@@ -43,28 +44,25 @@ function nomeRegistro(
   }
 }
 
-async function localizarAnexo(tipo: TipoLancamento, id: string) {
+function filtroDoLancamento(tipo: TipoLancamento, id: string) {
   switch (tipo) {
     case "custo":
-      return prisma.anexoLancamento.findUnique({
-        where: { custoId: id },
-      });
-
+      return { custoId: id };
     case "medicao":
-      return prisma.anexoLancamento.findUnique({
-        where: { medicaoId: id },
-      });
-
+      return { medicaoId: id };
     case "nota":
-      return prisma.anexoLancamento.findUnique({
-        where: { notaFiscalId: id },
-      });
-
+      return { notaFiscalId: id };
     case "recibo":
-      return prisma.anexoLancamento.findUnique({
-        where: { reciboId: id },
-      });
+      return { reciboId: id };
   }
+}
+
+// Um lançamento pode ter vários anexos; o id do anexo identifica qual deles.
+// Filtrar também pelo lançamento impede abrir/apagar um anexo de outro registro.
+async function localizarAnexo(tipo: TipoLancamento, id: string, anexoId: string) {
+  return prisma.anexoLancamento.findFirst({
+    where: { id: anexoId, ...filtroDoLancamento(tipo, id) },
+  });
 }
 
 async function localizarRegistro(tipo: TipoLancamento, id: string) {
@@ -84,7 +82,7 @@ async function localizarRegistro(tipo: TipoLancamento, id: string) {
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ tipo: string; id: string }> },
 ) {
   const guarda = await exigirSessao();
@@ -99,7 +97,18 @@ export async function GET(
     );
   }
 
-  const anexo = await localizarAnexo(tipo, id);
+  const anexoId = new URL(req.url).searchParams.get("anexo");
+
+  if (!anexoId) {
+    const anexos = await prisma.anexoLancamento.findMany({
+      where: filtroDoLancamento(tipo, id),
+      select: { id: true, nomeArquivo: true, tamanhoBytes: true, mimeType: true },
+      orderBy: { criadoEm: "asc" },
+    });
+    return NextResponse.json({ anexos });
+  }
+
+  const anexo = await localizarAnexo(tipo, id, anexoId);
 
   if (!anexo) {
     return NextResponse.json(
@@ -145,112 +154,74 @@ export async function POST(
   }
 
   const formData = await req.formData();
-  const arquivo = formData.get("arquivo");
+  const arquivos = formData.getAll("arquivo");
 
-  if (!(arquivo instanceof File)) {
+  if (arquivos.length === 0 || !arquivos.every((a): a is File => a instanceof File)) {
     return NextResponse.json(
       { erro: "Selecione um arquivo PDF, JPEG ou PNG." },
       { status: 400 },
     );
   }
 
-  if (!TIPOS_ACEITOS.has(arquivo.type)) {
+  if (arquivos.length > MAX_ARQUIVOS_POR_ENVIO) {
     return NextResponse.json(
-      { erro: "Somente arquivos PDF, JPEG ou PNG são permitidos." },
+      { erro: `Envie no máximo ${MAX_ARQUIVOS_POR_ENVIO} arquivos por vez.` },
       { status: 400 },
     );
   }
 
-  if (arquivo.size <= 0) {
-    return NextResponse.json(
-      { erro: "O arquivo está vazio." },
-      { status: 400 },
-    );
+  // Valida todos antes de gravar qualquer um: um envio com um arquivo ruim
+  // não deve deixar metade dos anexos salvos.
+  for (const arquivo of arquivos) {
+    if (!TIPOS_ACEITOS.has(arquivo.type)) {
+      return NextResponse.json(
+        { erro: `"${arquivo.name}": somente arquivos PDF, JPEG ou PNG são permitidos.` },
+        { status: 400 },
+      );
+    }
+    if (arquivo.size <= 0) {
+      return NextResponse.json(
+        { erro: `"${arquivo.name}": o arquivo está vazio.` },
+        { status: 400 },
+      );
+    }
+    if (arquivo.size > LIMITE_BYTES) {
+      return NextResponse.json(
+        { erro: `"${arquivo.name}": o arquivo não pode ultrapassar 10 MB.` },
+        { status: 400 },
+      );
+    }
   }
 
-  if (arquivo.size > LIMITE_BYTES) {
-    return NextResponse.json(
-      { erro: "O arquivo não pode ultrapassar 10 MB." },
-      { status: 400 },
-    );
-  }
+  const criados = [];
+  for (const arquivo of arquivos) {
+    const anexo = await prisma.anexoLancamento.create({
+      data: {
+        nomeArquivo: arquivo.name || "documento",
+        mimeType: arquivo.type,
+        tamanhoBytes: arquivo.size,
+        conteudo: Buffer.from(await arquivo.arrayBuffer()),
+        ...filtroDoLancamento(tipo, id),
+      },
+      select: { id: true, nomeArquivo: true, tamanhoBytes: true, mimeType: true },
+    });
+    criados.push(anexo);
 
-  const conteudo = Buffer.from(await arquivo.arrayBuffer());
-  const dadosBase = {
-    nomeArquivo: arquivo.name || "documento",
-    mimeType: arquivo.type,
-    tamanhoBytes: arquivo.size,
-    conteudo,
-  };
-
-  const anexoAnterior = await localizarAnexo(tipo, id);
-
-  let anexo;
-
-  switch (tipo) {
-    case "custo":
-      anexo = await prisma.anexoLancamento.upsert({
-        where: { custoId: id },
-        create: { ...dadosBase, custoId: id },
-        update: dadosBase,
-      });
-      break;
-
-    case "medicao":
-      anexo = await prisma.anexoLancamento.upsert({
-        where: { medicaoId: id },
-        create: { ...dadosBase, medicaoId: id },
-        update: dadosBase,
-      });
-      break;
-
-    case "nota":
-      anexo = await prisma.anexoLancamento.upsert({
-        where: { notaFiscalId: id },
-        create: { ...dadosBase, notaFiscalId: id },
-        update: dadosBase,
-      });
-      break;
-
-    case "recibo":
-      anexo = await prisma.anexoLancamento.upsert({
-        where: { reciboId: id },
-        create: { ...dadosBase, reciboId: id },
-        update: dadosBase,
-      });
-      break;
-  }
-
-  await registrarAuditoria({
-    sessao: guarda.sessao,
-    modulo: nomeModulo(tipo),
-    acao: anexoAnterior ? "substituir_anexo" : "anexar_arquivo",
-    registroId: id,
-    descricao: `${anexoAnterior ? "Anexo substituído" : "Anexo adicionado"} no lançamento ${nomeRegistro(tipo, registro)}.`,
-    depois: {
-      id: anexo.id,
-      nomeArquivo: anexo.nomeArquivo,
-      tamanhoBytes: anexo.tamanhoBytes,
-      tipo,
+    await registrarAuditoria({
+      sessao: guarda.sessao,
+      modulo: nomeModulo(tipo),
+      acao: "anexar_arquivo",
       registroId: id,
-    },
-  });
+      descricao: `Anexo adicionado no lançamento ${nomeRegistro(tipo, registro)}.`,
+      depois: { ...anexo, tipo, registroId: id },
+    });
+  }
 
-  return NextResponse.json({
-    ok: true,
-    anexo: {
-      id: anexo.id,
-      nomeArquivo: anexo.nomeArquivo,
-      tamanhoBytes: anexo.tamanhoBytes,
-      mimeType: anexo.mimeType,
-      criadoEm: anexo.criadoEm,
-      atualizadoEm: anexo.atualizadoEm,
-    },
-  });
+  return NextResponse.json({ ok: true, anexos: criados });
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ tipo: string; id: string }> },
 ) {
   const guarda = await podeGravar();
@@ -265,11 +236,12 @@ export async function DELETE(
     );
   }
 
-  const anexo = await localizarAnexo(tipo, id);
+  const anexoId = new URL(req.url).searchParams.get("anexo");
+  const anexo = anexoId ? await localizarAnexo(tipo, id, anexoId) : null;
 
   if (!anexo) {
     return NextResponse.json(
-      { erro: "Nenhum anexo encontrado para este lançamento." },
+      { erro: "Anexo não encontrado neste lançamento." },
       { status: 404 },
     );
   }

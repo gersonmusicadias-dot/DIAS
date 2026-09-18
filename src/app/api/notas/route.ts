@@ -19,7 +19,7 @@ export async function GET() {
       cliente: { select: { nomeFantasia: true } },
       medicao: { select: { identificador: true } },
       recebimentos: true,
-      anexo: { select: { nomeArquivo: true, tamanhoBytes: true, mimeType: true } },
+      anexos: { select: { id: true, nomeArquivo: true, tamanhoBytes: true, mimeType: true }, orderBy: { criadoEm: "asc" } },
     },
     orderBy: [{ competencia: "desc" }, { numero: "asc" }],
   });
@@ -57,7 +57,7 @@ export async function GET() {
               ? "PARCIALMENTE RECEBIDA"
               : "RECEBIDA",
         temMovimento: n.recebimentos.length > 0,
-        anexo: n.anexo,
+        anexos: n.anexos,
       };
     }),
   });
