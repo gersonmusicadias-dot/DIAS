@@ -496,6 +496,10 @@ tbody tr:hover { background: rgba(47, 159, 224, 0.06); }
     transform: translateX(-100%);
     transition: transform .22s ease;
     box-shadow: 0 0 40px rgba(0, 0, 0, .5);
+    /* A gaveta ocupa a tela toda (top:0 a bottom:0); sem isso, o menu
+       mais alto que a tela ficava sem rolagem e escondia Sistema/Sair. */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .lateral.aberta { transform: translateX(0); }
 
