@@ -76,14 +76,14 @@ async function validarMedicao(clienteId: string, medicaoId: string | null | unde
     where: { id: medicaoId },
     include: {
       notasFiscais: { where: ignorarNotaId ? { id: { not: ignorarNotaId } } : undefined, select: { valorNota: true } },
-      recibos: { where: { substituidoPor: null }, select: { valorRecibo: true } },
+      recibos: { where: { substituidoPor: null }, select: { valorRecibo: true, valorPrevisto: true, dataEmissao: true } },
     },
   });
   if (!medicao || medicao.clienteId !== clienteId) return "A medição selecionada não pertence a este cliente.";
   if (medicao.status !== "MEDIDA" || !medicao.valorMedido) return "Só é possível vincular uma medição já emitida.";
   const aFaturar = saldoAFaturarDaMedicao(medicao.valorMedido, [
     ...medicao.notasFiscais.map((n) => ({ valor: n.valorNota })),
-    ...medicao.recibos.map((r) => ({ valor: r.valorRecibo })),
+    ...medicao.recibos.map((r) => ({ valor: r.dataEmissao ? r.valorRecibo : r.valorPrevisto })),
   ]);
   return valor > aFaturar + 0.005 ? `A medição só tem R$ ${aFaturar.toFixed(2)} disponível para faturar.` : null;
 }

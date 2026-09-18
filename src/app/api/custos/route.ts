@@ -119,7 +119,7 @@ export async function POST(req: Request) {
     acao: dados.data.recorrente ? "criar-recorrencia" : "criar",
     registroId: custo.id,
     descricao: dados.data.recorrente
-      ? `Custo ${custo.descricao} cadastrado com recorr?ncia de ${quantidade} compet?ncias.`
+      ? `Custo ${custo.descricao} cadastrado com recorrência de ${quantidade} competências.`
       : `Custo ${custo.descricao} cadastrado.`,
     depois: dados.data.recorrente
       ? {

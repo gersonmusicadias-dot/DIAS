@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { sessaoAtual } from "@/lib/auth/sessao";
+import { exigirSessao } from "@/lib/auth/guarda";
 
 const entrada = z.object({
   receberEmail: z.boolean(),
@@ -11,8 +11,9 @@ const entrada = z.object({
 });
 
 export async function GET() {
-  const sessao = await sessaoAtual();
-  if (!sessao) return NextResponse.json({ erro: "Não autorizado." }, { status: 401 });
+  const guarda = await exigirSessao();
+  if (guarda.erro) return guarda.erro;
+  const sessao = guarda.sessao;
 
   const pref = await prisma.preferenciaNotificacao.findUnique({
     where: { usuarioId: sessao.sub },
@@ -28,8 +29,9 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const sessao = await sessaoAtual();
-  if (!sessao) return NextResponse.json({ erro: "Não autorizado." }, { status: 401 });
+  const guarda = await exigirSessao();
+  if (guarda.erro) return guarda.erro;
+  const sessao = guarda.sessao;
 
   const dados = entrada.safeParse(await req.json().catch(() => null));
   if (!dados.success) return NextResponse.json({ erro: "Preferências inválidas." }, { status: 400 });

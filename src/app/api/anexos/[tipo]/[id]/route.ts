@@ -26,7 +26,10 @@ function nomeModulo(tipo: TipoLancamento) {
   }
 }
 
-function nomeRegistro(tipo: TipoLancamento, registro: any) {
+function nomeRegistro(
+  tipo: TipoLancamento,
+  registro: { id: string; descricao?: string | null; identificador?: string | null; numero?: string | null },
+) {
   switch (tipo) {
     case "custo":
       return registro.descricao ?? registro.id;

@@ -89,6 +89,9 @@ export async function PATCH(req: Request) {
   const antes = await prisma.cliente.findUnique({
     where: { id: dados.data.id },
   });
+  if (!antes) {
+    return NextResponse.json({ erro: "Cliente não encontrado." }, { status: 404 });
+  }
 
   const cliente = await prisma.cliente.update({
     where: { id: dados.data.id },

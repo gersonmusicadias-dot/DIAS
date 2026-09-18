@@ -139,7 +139,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ erro: "Informe o valor do recibo." }, { status: 400 });
   }
 
-  let competenciaFinal = d.competencia;
+  let competenciaFinal = d.emitido ? d.dataEmissao!.slice(0, 7) : d.competencia;
   let valorPrevistoFinal = d.valorPrevisto;
   let previsaoRecebimentoFinal = d.previsaoRecebimento || null;
   let valorReciboFinal = d.emitido ? d.valorRecibo! : 0;
