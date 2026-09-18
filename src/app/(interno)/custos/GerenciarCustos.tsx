@@ -7,6 +7,7 @@ import SelectPadrao from "@/components/SelectPadrao";
 import { paraNumero, competenciaHoje } from "@/lib/ui";
 import PainelEventos from "@/components/PainelEventos";
 import GraficoCustosMensal from "@/components/GraficoCustosMensal";
+import AnexoPdf from "@/components/AnexoPdf";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -17,6 +18,7 @@ interface Custo {
   competencia: string; vencimento: string;
   previsto: number; pago: number; saldo: number;
   situacao: string; temMovimento: boolean;
+  anexo: { nomeArquivo: string; tamanhoBytes: number } | null;
 }
 
 const real = (v: number) =>
@@ -549,6 +551,10 @@ export default function GerenciarCustos({
                 <div><label className="rotulo">Pago</label><div className="campo">{real(visualizando.pago)}</div></div>
                 <div><label className="rotulo">Saldo</label><div className="campo">{real(visualizando.saldo)}</div></div>
                 <div><label className="rotulo">Situação</label><div className="campo"><span className={`selo ${SELO[visualizando.situacao] ?? "off"}`}>{visualizando.situacao}</span></div></div>
+              </div>
+              <div style={{ marginTop: 20 }}>
+                <label className="rotulo">Anexo (PDF)</label>
+                <AnexoPdf tipo="custo" id={visualizando.id} anexoInicial={visualizando.anexo} somenteLeitura={somenteLeitura} />
               </div>
             </div>
           </div>

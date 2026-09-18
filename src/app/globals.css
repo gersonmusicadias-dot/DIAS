@@ -8420,6 +8420,17 @@ html.light .barra-filtros,
 .casca .fm-custos-barra.compromissos{background:linear-gradient(180deg,#b3c3d2,#8298ad);box-shadow:0 0 12px rgba(158,178,197,.1)}
 .casca .fm-custos-barra.realizado{background:linear-gradient(180deg,#ff6174,#dc4054);box-shadow:0 0 12px rgba(255,83,104,.1)}
 .casca .fm-custos-barra.apagar{background:linear-gradient(180deg,#a66bff,#8247e8);box-shadow:0 0 12px rgba(156,92,255,.12)}
+
+/* Anexo de PDF (Custos, Notas Fiscais, Recibos) */
+.casca .fm-anexo-pdf { display: flex; flex-direction: column; gap: 8px; }
+.casca .fm-anexo-pdf-atual { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.casca .fm-anexo-pdf-link { display: inline-flex; align-items: center; gap: 6px; color: var(--fm-brand); text-decoration: none; font-weight: 600; font-size: 13px; }
+.casca .fm-anexo-pdf-link:hover { text-decoration: underline; }
+.casca .fm-anexo-pdf-link small { color: var(--fm-faint); font-weight: 400; }
+.casca .fm-anexo-pdf-vazio { color: var(--fm-faint); font-size: 13px; margin: 0; }
+.casca .fm-anexo-pdf-confirmar { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--fm-muted); }
+.casca .fm-anexo-pdf-botao { cursor: pointer; display: inline-flex; }
+.casca .fm-anexo-pdf-botao.desabilitado { opacity: .6; cursor: not-allowed; }
 @media (max-width:720px){.casca .fm-custos-resumo{grid-template-columns:1fr}}
 .casca,.casca button,.casca input,.casca select,.casca textarea{-webkit-font-smoothing:auto;-moz-osx-font-smoothing:auto;text-rendering:auto}
 .casca svg{shape-rendering:geometricPrecision}

@@ -5,6 +5,7 @@ import CampoMoeda from "@/components/CampoMoeda";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import PainelEventos from "./PainelEventos";
+import AnexoPdf from "@/components/AnexoPdf";
 import { real, dataBR, hojeISO, competenciaHoje, paraNumero, classeSelo } from "@/lib/ui";
 import SelectPadrao from "@/components/SelectPadrao";
 
@@ -28,6 +29,7 @@ interface Documento {
   identificador?: string; descricao?: string; emitido?: number; foiEmitido?: boolean; origem?: string;
   substitui?: string | null; substituidoPor?: string | null; versaoSubstituicao?: number;
   motivoSubstituicao?: string | null; substituidoEm?: string | null;
+  anexo: { nomeArquivo: string; tamanhoBytes: number } | null;
 }
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -807,6 +809,10 @@ export default function GerenciarDocumentos({
                 {tipo === "recibo" && visualizando.descricao && (
                   <div className="largo"><label className="rotulo">Descrição</label><div className="campo" style={{ minHeight:70, whiteSpace:"pre-wrap", alignItems:"flex-start" }}>{visualizando.descricao}</div></div>
                 )}
+              </div>
+              <div style={{ marginTop: 20 }}>
+                <label className="rotulo">Anexo (PDF)</label>
+                <AnexoPdf tipo={tipo} id={visualizando.id} anexoInicial={visualizando.anexo} somenteLeitura={somenteLeitura} />
               </div>
             </div>
           </div>
