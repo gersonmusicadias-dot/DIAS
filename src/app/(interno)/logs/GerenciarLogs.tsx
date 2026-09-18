@@ -25,6 +25,19 @@ function formatarData(valor: string) {
   });
 }
 
+/**
+ * `criadoEm` chega em UTC; um evento das 22h locais já é outro dia em UTC.
+ * O filtro de data precisa comparar contra o mesmo dia que `formatarData`
+ * mostra na tela — os dois usam o fuso local do navegador, não o de `slice`.
+ */
+function dataLocal(valor: string) {
+  const d = new Date(valor);
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
 function rotuloAcao(acao: string) {
   const mapa: Record<string, string> = {
     login: "Login",
@@ -93,7 +106,7 @@ export default function GerenciarLogs() {
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     return eventos.filter((evento) => {
-      const data = evento.criadoEm.slice(0, 10);
+      const data = dataLocal(evento.criadoEm);
       if (modulo && evento.modulo !== modulo) return false;
       if (acao && evento.acao !== acao) return false;
       if (dataInicio && data < dataInicio) return false;

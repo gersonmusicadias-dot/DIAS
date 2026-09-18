@@ -29,17 +29,17 @@ function checar(nome: string, condicao: boolean, detalhe = "") {
   else { falhas += 1; console.log("  [FALHA] " + nome + (detalhe ? "   -> " + detalhe : "")); }
 }
 
-async function limpar() {
+async function limpar(prefixo: string = MARCA) {
   // Ordem importa: eventos antes dos documentos, documentos antes dos pais.
-  await prisma.recebimentoNota.deleteMany({ where: { nota: { numero: { startsWith: MARCA } } } });
-  await prisma.recebimentoRecibo.deleteMany({ where: { recibo: { identificador: { startsWith: MARCA } } } });
-  await prisma.pagamentoCusto.deleteMany({ where: { custo: { descricao: { startsWith: MARCA } } } });
-  await prisma.notaFiscal.deleteMany({ where: { numero: { startsWith: MARCA } } });
-  await prisma.recibo.deleteMany({ where: { identificador: { startsWith: MARCA } } });
-  await prisma.medicao.deleteMany({ where: { identificador: { startsWith: MARCA } } });
-  await prisma.custo.deleteMany({ where: { descricao: { startsWith: MARCA } } });
-  await prisma.categoria.deleteMany({ where: { nome: { startsWith: MARCA } } });
-  await prisma.cliente.deleteMany({ where: { nomeFantasia: { startsWith: MARCA } } });
+  await prisma.recebimentoNota.deleteMany({ where: { nota: { numero: { startsWith: prefixo } } } });
+  await prisma.recebimentoRecibo.deleteMany({ where: { recibo: { identificador: { startsWith: prefixo } } } });
+  await prisma.pagamentoCusto.deleteMany({ where: { custo: { descricao: { startsWith: prefixo } } } });
+  await prisma.notaFiscal.deleteMany({ where: { numero: { startsWith: prefixo } } });
+  await prisma.recibo.deleteMany({ where: { identificador: { startsWith: prefixo } } });
+  await prisma.medicao.deleteMany({ where: { identificador: { startsWith: prefixo } } });
+  await prisma.custo.deleteMany({ where: { descricao: { startsWith: prefixo } } });
+  await prisma.categoria.deleteMany({ where: { nome: { startsWith: prefixo } } });
+  await prisma.cliente.deleteMany({ where: { nomeFantasia: { startsWith: prefixo } } });
   // Nada de saldo aqui: o teste não cria nenhum, e apagar o do usuário
   // seria destruir dado real para arrumar a casa do teste.
 }
@@ -50,6 +50,11 @@ async function principal() {
   console.log("=".repeat(72));
   console.log("");
 
+  // Prefixo genérico: uma execução anterior interrompida (Ctrl+C, queda de
+  // conexão) usa uma MARCA diferente a cada vez e nunca seria limpa pela
+  // MARCA desta execução. Sem essa varredura ampla primeiro, aquele lixo
+  // ficaria contando para sempre no saldo de caixa real.
+  await limpar("TESTE_");
   await limpar();
 
   // Fotografia do que já existe, para provar no fim que nada foi tocado.

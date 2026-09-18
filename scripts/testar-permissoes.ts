@@ -48,6 +48,10 @@ async function limpar() {
   await prisma.sessao.deleteMany({ where: { usuario: { email: { startsWith: MARCA } } } });
   await prisma.registroAcesso.deleteMany({ where: { email: { startsWith: MARCA } } });
   await prisma.usuario.deleteMany({ where: { email: { startsWith: MARCA } } });
+  // Centralizado aqui (e não só logo após criar) para rodar também no
+  // .catch() de qualquer falha no meio do script, e não deixar a categoria
+  // de teste esquecida em produção quando algo explode antes do fim.
+  await prisma.categoria.deleteMany({ where: { nome: { startsWith: MARCA } } });
 }
 
 async function principal() {
@@ -146,9 +150,6 @@ checar("2b. Impressao bloqueia primeiro acesso", impressaoPrimeiroAcesso.status 
     method: "POST", body: JSON.stringify({ nome: MARCA + "cat", tipo: "Custo Fixo" }),
   });
   checar("4. OPERADOR grava no financeiro", opCategoria.status === 200, String(opCategoria.status));
-  if (opCategoria.status === 200) {
-    await prisma.categoria.deleteMany({ where: { nome: { startsWith: MARCA } } });
-  }
 
   const opUsuarios = await operador.chamar("/api/usuarios");
   checar("4b. OPERADOR não administra usuários", opUsuarios.status === 403, String(opUsuarios.status));
@@ -159,9 +160,18 @@ checar("2b. Impressao bloqueia primeiro acesso", impressaoPrimeiroAcesso.status 
   checar("4c. OPERADOR não se promove cadastrando um ADMIN", opConvite.status === 403,
     String(opConvite.status));
 
-  const impressaoAutorizada = await operador.chamar("/recibos/cmtqnef6j0001j7ww3v2r8h56/imprimir");
-checar("4d. Usuario autorizado continua acessando impressao de recibo",
-  impressaoAutorizada.status === 200, String(impressaoAutorizada.status));
+  // Qualquer recibo emitido existente serve: o que está sendo provado é a
+  // permissão de acesso, não o conteúdo de um recibo específico. Um cuid
+  // fixo só existiria no banco de quem escreveu o teste e falharia em
+  // qualquer outro ambiente sem indicar defeito nenhum.
+  const reciboQualquer = await prisma.recibo.findFirst({ where: { dataEmissao: { not: null } }, select: { id: true } });
+  if (!reciboQualquer) {
+    console.log("  [PULADO] 4d. Nenhum recibo emitido no banco para testar a impressão.");
+  } else {
+    const impressaoAutorizada = await operador.chamar(`/recibos/${reciboQualquer.id}/imprimir`);
+    checar("4d. Usuario autorizado continua acessando impressao de recibo",
+      impressaoAutorizada.status === 200, String(impressaoAutorizada.status));
+  }
 
   // ---------------- Revogação: o que o administrador faz vale AGORA ----------------
   // Um JWT é uma foto do login, e vale até expirar. Se o acesso fosse
@@ -312,8 +322,6 @@ checar("6i2. Impressao bloqueia sessao revogada por redefinicao de senha",
     method: "PATCH", body: JSON.stringify({ papel: "ADMIN" }),
   });
   checar("7d. Mas altera o perfil de outra pessoa", promover.status === 200, String(promover.status));
-
-  await prisma.categoria.deleteMany({ where: { nome: { startsWith: MARCA } } });
 
   await limpar();
   console.log("");

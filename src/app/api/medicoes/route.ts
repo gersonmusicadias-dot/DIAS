@@ -215,8 +215,13 @@ export async function PATCH(req: Request) {
     }
 
     const temDocumentos = medicao.recibos.length > 0 || medicao.notasFiscais.length > 0;
-    const valorMedidoFinal = d.valorMedido ?? medicao.valorMedido;
-    const dataMedicaoFinal = d.dataMedicao ?? medicao.dataMedicao;
+    // A tela sempre envia os dois campos na edição (null quando o usuário
+    // desmarca "Já registrar a medição"); usar "??" aqui ignorava esse null e
+    // mantinha o valor medido antigo, fazendo o checkbox desmarcado não ter
+    // efeito nenhum. Quem protege contra apagar uma medição com documento
+    // vinculado é a checagem de temDocumentos logo abaixo.
+    const valorMedidoFinal = d.valorMedido;
+    const dataMedicaoFinal = d.dataMedicao;
 
     if (temDocumentos) {
       if (!valorMedidoFinal || !dataMedicaoFinal) {

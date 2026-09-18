@@ -1,7 +1,7 @@
 "use client";
 
 import CampoMoeda from "@/components/CampoMoeda";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { dataBR, hojeISO, paraNumero, real } from "@/lib/ui";
 
@@ -71,6 +71,7 @@ function totaisConsolidados(linhas: Linha[]) {
 export default function VerFluxoCaixa({ somenteLeitura }: { somenteLeitura: boolean }) {
   const router = useRouter();
   const [visao, setVisao] = useState<Visao | null>(null);
+  const [saldoConfigurado, setSaldoConfigurado] = useState(0);
   const [carregando, setCarregando] = useState(true);
   const [modo, setModo] = useState<string>("REALIZADO");
   const [inicio, setInicio] = useState("");
@@ -81,14 +82,25 @@ export default function VerFluxoCaixa({ somenteLeitura }: { somenteLeitura: bool
   const [dataSaldo, setDataSaldo] = useState(hojeISO());
   const [salvando, setSalvando] = useState(false);
 
+  const pedidoAtual = useRef(0);
+
   const carregar = useCallback(async () => {
+    const pedido = ++pedidoAtual.current;
     setCarregando(true);
     const q = new URLSearchParams({ modo });
     if (inicio) q.set("inicio", inicio);
     if (fim) q.set("fim", fim);
     const r = await fetch(`/api/fluxo-caixa?${q}`);
-    if (r.ok) setVisao((await r.json()).visao);
-    setCarregando(false);
+    // Troca rápida de modo/data dispara vários fetches em sequência; só o
+    // último pedido pode escrever no estado, senão uma resposta atrasada
+    // sobrescreve a tela com um período diferente do que os filtros mostram.
+    if (pedido !== pedidoAtual.current) return;
+    if (r.ok) {
+      const d = await r.json();
+      setVisao(d.visao);
+      setSaldoConfigurado(d.saldoInicialConfigurado ?? 0);
+    }
+    if (pedido === pedidoAtual.current) setCarregando(false);
   }, [modo, inicio, fim]);
 
   useEffect(() => { carregar(); }, [carregar]);
@@ -292,7 +304,7 @@ export default function VerFluxoCaixa({ somenteLeitura }: { somenteLeitura: bool
                 <h2>{visao?.configurado ? "Acrescentar saldo inicial" : "Saldo inicial de caixa"}</h2>
                 <p>
                   {visao?.configurado
-                    ? `Saldo inicial atual: ${real(visao.saldoInicial)}. O valor informado \u00e9 somado a ele \u2014 n\u00e3o \u00e9 poss\u00edvel redefinir.`
+                    ? `Saldo inicial atual: ${real(saldoConfigurado)}. O valor informado \u00e9 somado a ele \u2014 n\u00e3o \u00e9 poss\u00edvel redefinir.`
                     : "Defina o ponto de partida do acumulado financeiro."}
                 </p>
               </div>

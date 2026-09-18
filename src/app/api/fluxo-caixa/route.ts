@@ -34,7 +34,10 @@ export async function GET(req: Request) {
     fim && DATA.test(fim) ? fim : undefined
   );
 
-  return NextResponse.json({ visao });
+  // Valor bruto gravado no registro único de saldo — o que o POST realmente
+  // soma. Diferente de visao.saldoInicial, que é ajustado ao período filtrado
+  // e confundia quem via "Acrescentar saldo" com um número que não é o somado.
+  return NextResponse.json({ visao, saldoInicialConfigurado: base.saldo?.valor ?? 0 });
 }
 
 const saldoNovo = z.object({

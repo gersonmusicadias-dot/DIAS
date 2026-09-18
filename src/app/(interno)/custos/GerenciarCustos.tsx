@@ -159,12 +159,6 @@ export default function GerenciarCustos({
     if (!excluindo) return;
 
     setErro(null);
-    const quantidadeRecorrencia = Number(mesesRecorrencia);
-    if (!editandoId && recorrente && (!Number.isInteger(quantidadeRecorrencia) || quantidadeRecorrencia < 2 || quantidadeRecorrencia > 60)) {
-      setErro("Informe uma recorrência entre 2 e 60 meses.");
-      return;
-    }
-
     setSalvando(true);
 
     try {
@@ -508,7 +502,7 @@ export default function GerenciarCustos({
                         <button type="button" className="fm-acao-icone" onClick={() => setMenuAcoesId(menuAcoesId === c.id ? null : c.id)} aria-label="Mais ações" title="Mais ações">⋮</button>
                         {menuAcoesId === c.id && (
                           <div className="fm-menu-acoes">
-                            {!c.temMovimento && <button type="button" onClick={() => { setMenuAcoesId(null); iniciarEdicao(c); }}>Editar</button>}
+                            {c.pago <= 0 && <button type="button" onClick={() => { setMenuAcoesId(null); iniciarEdicao(c); }}>Editar</button>}
                             <button type="button" onClick={() => { setMenuAcoesId(null); setPagamentosDe(c); }}>
                               {!c.temMovimento ? "Pagar" : c.saldo > 0.005 ? "Pagamentos / estornos" : "Pagamentos / estornar"}
                             </button>

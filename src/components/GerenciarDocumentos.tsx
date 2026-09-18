@@ -577,7 +577,11 @@ export default function GerenciarDocumentos({
                         </div>
                         <div className="fm-custo-campo">
                           <label>Identificador</label>
-                          <input value={proximoIdentificadorRecibo} readOnly title="Numeração automática do recibo" />
+                          <input
+                            value={form.emitido ? proximoIdentificadorRecibo : "Gerado ao emitir o recibo"}
+                            readOnly
+                            title={form.emitido ? "Numeração automática do recibo" : "Recibos previstos recebem um identificador provisório até serem emitidos"}
+                          />
                         </div>
                         <div className="fm-custo-campo fm-custo-campo-largo">
                           <label>Descrição <b>*</b></label>
@@ -591,7 +595,7 @@ export default function GerenciarDocumentos({
                       <div className="fm-custo-grid">
                         <div className="fm-custo-campo fm-custo-campo-largo">
                           <label>Medição de origem</label>
-                          <SelectPadrao value={form.medicaoId} onChange={(valor) => selecionarMedicao(valor)} disabled={salvando || !form.clienteId} options={[{ value: "", label: "Sem vínculo (avulso)" }, ...medicoesDoCliente.map((m) => ({ value: m.id, label: m.identificador }))]} ariaLabel="Medição de origem" />
+                          <SelectPadrao value={form.medicaoId} onChange={(valor) => selecionarMedicao(valor)} disabled={salvando || !form.clienteId || !!editandoId} options={[{ value: "", label: "Sem vínculo (avulso)" }, ...medicoesDoCliente.filter((m) => m.aFaturar > 0 || m.id === form.medicaoId).map((m) => ({ value: m.id, label: `${m.identificador} · disponível ${real(m.aFaturar)}` }))]} ariaLabel="Medição de origem" />
                         </div>
                       </div>
                     </section>
@@ -746,7 +750,7 @@ export default function GerenciarDocumentos({
                           Editar
                         </button>
                       )}
-                      {!foiEmitido(d) && (
+                      {tipo === "recibo" && !foiEmitido(d) && (
                         <button type="button" className="botao discreto mini"
                           onClick={() => { setEmitindo(d); setValorEmissao(String(d.valorPrevisto).replace(".", ",")); }}>
                           Emitir

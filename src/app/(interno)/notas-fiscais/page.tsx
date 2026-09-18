@@ -19,8 +19,8 @@ export default async function PaginaNotas() {
       select: {
         id: true, identificador: true, clienteId: true, competencia: true,
         valorMedido: true, previsaoRecebimento: true,
-        notasFiscais: { select: { valorNota: true } },
-        recibos: { where: { substituidoPor: null }, select: { valorRecibo: true } },
+        notasFiscais: { select: { valorNota: true, valorPrevisto: true, dataEmissao: true } },
+        recibos: { where: { substituidoPor: null }, select: { valorRecibo: true, valorPrevisto: true, dataEmissao: true } },
       },
     }),
   ]);
@@ -29,8 +29,8 @@ export default async function PaginaNotas() {
     id: m.id, identificador: m.identificador, clienteId: m.clienteId,
     competencia: m.competencia, previsaoRecebimento: m.previsaoRecebimento,
     aFaturar: saldoAFaturarDaMedicao(m.valorMedido ?? 0, [
-      ...m.notasFiscais.map((n) => ({ valor: n.valorNota })),
-      ...m.recibos.map((r) => ({ valor: r.valorRecibo })),
+      ...m.notasFiscais.map((n) => ({ valor: n.dataEmissao ? n.valorNota : n.valorPrevisto })),
+      ...m.recibos.map((r) => ({ valor: r.dataEmissao ? r.valorRecibo : r.valorPrevisto })),
     ]),
   }));
 
