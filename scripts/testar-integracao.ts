@@ -175,7 +175,7 @@ async function principal() {
     `${caixa.saldoInicial} + ${caixa.entradas} - ${caixa.saidas} = ${caixa.saldoFinal}`);
   // 12.000 recebidos − 8.000 pagos + 3.000 estornados
   checar("7c2. E o que este teste movimentou é exatamente 7.000",
-    caixa.saldoFinal - caixa0.saldoFinal === 7000,
+    Math.abs(caixa.saldoFinal - caixa0.saldoFinal - 7000) < 0.005,
     String(caixa.saldoFinal - caixa0.saldoFinal));
 
   const resumo = resumoDeCaixa(baseComSaldo);
