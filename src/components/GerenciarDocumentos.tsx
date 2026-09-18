@@ -740,42 +740,43 @@ export default function GerenciarDocumentos({
                 </td>
                 <td>{dataBR(d.previsaoRecebimento)}</td>
                 <td><span className={`selo ${classeSelo(d.situacao)}`}>{d.situacao}</span></td>
-                {!somenteLeitura && (
-                  <td>
-                    <div className="acoes-linha">
-                      {(tipo === "nota" || !d.substituidoPor) && (
-                        <button
-                          type="button"
-                          className="botao discreto mini"
-                          onClick={() => abrirEdicao(d)}
-                        >
-                          Editar
-                        </button>
-                      )}
-                      {tipo === "recibo" && !foiEmitido(d) && (
-                        <button type="button" className="botao discreto mini"
-                          onClick={() => { setEmitindo(d); setValorEmissao(String(d.valorPrevisto).replace(".", ",")); }}>
-                          Emitir
-                        </button>
-                      )}
-                      {tipo === "recibo" && foiEmitido(d) && (
-                        <button type="button" className="botao discreto mini" onClick={() => window.open(`/recibos/${d.id}/imprimir`, "_blank", "noopener,noreferrer")}>
-                          PDF
-                        </button>
-                      )}
-                      {foiEmitido(d) && !d.substituidoPor && (
-                        <button type="button" className="botao discreto mini" onClick={() => setRecebendo(d)}>
-                          {d.temMovimento ? "Recebimentos" : "Receber"}
-                        </button>
-                      )}
-                      {tipo === "recibo" && foiEmitido(d) && !d.temMovimento && !d.substituidoPor && (
-                        <button type="button" className="botao discreto mini" onClick={() => abrirSubstituicao(d)}>
-                          Substituir
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                )}
+                <td>
+                  <div className="acoes-linha">
+                    <button type="button" className="botao discreto mini" onClick={() => setVisualizando(d)}>
+                      Visualizar
+                    </button>
+                    {!somenteLeitura && (tipo === "nota" || !d.substituidoPor) && (
+                      <button
+                        type="button"
+                        className="botao discreto mini"
+                        onClick={() => abrirEdicao(d)}
+                      >
+                        Editar
+                      </button>
+                    )}
+                    {!somenteLeitura && tipo === "recibo" && !foiEmitido(d) && (
+                      <button type="button" className="botao discreto mini"
+                        onClick={() => { setEmitindo(d); setValorEmissao(String(d.valorPrevisto).replace(".", ",")); }}>
+                        Emitir
+                      </button>
+                    )}
+                    {tipo === "recibo" && foiEmitido(d) && (
+                      <button type="button" className="botao discreto mini" onClick={() => window.open(`/recibos/${d.id}/imprimir`, "_blank", "noopener,noreferrer")}>
+                        PDF
+                      </button>
+                    )}
+                    {!somenteLeitura && foiEmitido(d) && !d.substituidoPor && (
+                      <button type="button" className="botao discreto mini" onClick={() => setRecebendo(d)}>
+                        {d.temMovimento ? "Recebimentos" : "Receber"}
+                      </button>
+                    )}
+                    {!somenteLeitura && tipo === "recibo" && foiEmitido(d) && !d.temMovimento && !d.substituidoPor && (
+                      <button type="button" className="botao discreto mini" onClick={() => abrirSubstituicao(d)}>
+                        Substituir
+                      </button>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
             {!carregando && visiveis.length === 0 && (
