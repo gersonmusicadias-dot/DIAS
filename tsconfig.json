@@ -37,6 +37,9 @@
   "exclude": [
     "node_modules",
     "src-backup-encoding-20260906-193526",
-    "backups"
+    "src-backup-antes-correcao-acentos",
+    "backups",
+    "AUDITORIA-VISUAL-FLUXOMED",
+    "Fluxomed-AUDITORIA-2026-09-13"
   ]
 }

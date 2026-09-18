@@ -25,3 +25,6 @@ backups/
 src-backup-*/
 Fluxomed-AUDITORIA-*/
 AUDITORIA-VISUAL-FLUXOMED/
+
+.vercel
+.env*
