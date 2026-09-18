@@ -14,9 +14,7 @@ export interface ReconhecimentoComprovante {
   texto: string;
 }
 
-async function paraImagemReconhecivel(arquivo: File): Promise<File | HTMLCanvasElement> {
-  if (arquivo.type !== "application/pdf") return arquivo;
-
+async function pdfParaCanvas(arquivo: File): Promise<HTMLCanvasElement> {
   const pdfjsLib = await import("pdfjs-dist");
   pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
     "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -36,6 +34,144 @@ async function paraImagemReconhecivel(arquivo: File): Promise<File | HTMLCanvasE
 
   await pagina.render({ canvasContext: contexto, viewport, canvas }).promise;
   return canvas;
+}
+
+async function imagemParaCanvas(arquivo: File): Promise<HTMLCanvasElement> {
+  const bitmap = await createImageBitmap(arquivo);
+  const canvas = document.createElement("canvas");
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  canvas.getContext("2d")?.drawImage(bitmap, 0, 0);
+  bitmap.close();
+  return canvas;
+}
+
+const LARGURA_MINIMA_OCR = 1800;
+
+function paraCinza(canvas: HTMLCanvasElement): { cinza: Float32Array; width: number; height: number } {
+  const contexto = canvas.getContext("2d")!;
+  const { width, height } = canvas;
+  const dados = contexto.getImageData(0, 0, width, height).data;
+  const cinza = new Float32Array(width * height);
+  for (let i = 0, p = 0; p < cinza.length; i += 4, p++) {
+    cinza[p] = 0.299 * dados[i] + 0.587 * dados[i + 1] + 0.114 * dados[i + 2];
+  }
+  return { cinza, width, height };
+}
+
+/**
+ * Uma foto de celular tem ruído de sensor (grão), mais visível com pouca
+ * luz — exatamente a situação de um cupom fotografado dentro de um
+ * estabelecimento. Uma média 3x3 suaviza esse grão sem borrar de verdade o
+ * traço das letras, que é bem mais largo que um pixel de ruído.
+ */
+function desfoqueCaixa3x3(cinza: Float32Array, width: number, height: number): Float32Array {
+  const saida = new Float32Array(cinza.length);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let soma = 0;
+      let n = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const yy = y + dy;
+        if (yy < 0 || yy >= height) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx;
+          if (xx < 0 || xx >= width) continue;
+          soma += cinza[yy * width + xx];
+          n++;
+        }
+      }
+      saida[y * width + x] = soma / n;
+    }
+  }
+  return saida;
+}
+
+/**
+ * Esticar o contraste pelo mínimo/máximo absolutos é frágil: um único pixel
+ * de ruído mais escuro ou mais claro que o normal já distorce a escala
+ * inteira. Usar os percentis 2% e 98% em vez dos extremos ignora esses
+ * poucos pixels fora da curva e mantém o restante da imagem bem distribuído
+ * entre preto e branco.
+ */
+function contrastePorPercentil(cinza: Float32Array): Uint8ClampedArray {
+  // Histograma de 256 baldes em vez de ordenar milhões de pixels: uma foto em
+  // resolução alta tem pixels demais para um sort caber num orçamento de
+  // tempo razoável na thread principal, e um histograma dá o mesmo percentil
+  // com uma única passada.
+  const histograma = new Uint32Array(256);
+  for (let i = 0; i < cinza.length; i++) {
+    histograma[Math.max(0, Math.min(255, Math.round(cinza[i])))]++;
+  }
+  const alvoBaixo = cinza.length * 0.02;
+  const alvoAlto = cinza.length * 0.98;
+  let acumulado = 0;
+  let p2 = 0;
+  let p98 = 255;
+  for (let v = 0; v < 256; v++) {
+    acumulado += histograma[v];
+    if (acumulado >= alvoBaixo) { p2 = v; break; }
+  }
+  acumulado = 0;
+  for (let v = 0; v < 256; v++) {
+    acumulado += histograma[v];
+    if (acumulado >= alvoAlto) { p98 = v; break; }
+  }
+
+  const amplitude = Math.max(1, p98 - p2);
+  const saida = new Uint8ClampedArray(cinza.length);
+  for (let i = 0; i < cinza.length; i++) {
+    saida[i] = Math.round(((cinza[i] - p2) * 255) / amplitude);
+  }
+  return saida;
+}
+
+/**
+ * Fotos tiradas com o celular costumam ter letra pequena em relação ao
+ * tamanho da imagem e ruído/contraste fraco por causa da iluminação — o que
+ * mais atrapalha o Tesseract. Antes de ler: tons de cinza, um desfoque leve
+ * para tirar o grão do sensor, contraste esticado pelos percentis (preto e
+ * branco bem definidos sem depender de pixels isolados) e, só então, a
+ * ampliação para o texto ficar grande o bastante para o reconhecimento.
+ */
+function prepararParaOcr(origem: HTMLCanvasElement): HTMLCanvasElement {
+  const { cinza, width, height } = paraCinza(origem);
+  const desfocado = desfoqueCaixa3x3(cinza, width, height);
+  const contrastado = contrastePorPercentil(desfocado);
+
+  const base = document.createElement("canvas");
+  base.width = width;
+  base.height = height;
+  const contextoBase = base.getContext("2d");
+  if (!contextoBase) return origem;
+  const imagemBase = contextoBase.createImageData(width, height);
+  for (let p = 0, i = 0; p < contrastado.length; p++, i += 4) {
+    imagemBase.data[i] = contrastado[p];
+    imagemBase.data[i + 1] = contrastado[p];
+    imagemBase.data[i + 2] = contrastado[p];
+    imagemBase.data[i + 3] = 255;
+  }
+  contextoBase.putImageData(imagemBase, 0, 0);
+
+  if (width >= LARGURA_MINIMA_OCR) return base;
+
+  const fator = LARGURA_MINIMA_OCR / width;
+  const ampliado = document.createElement("canvas");
+  ampliado.width = Math.round(width * fator);
+  ampliado.height = Math.round(height * fator);
+  const contextoAmpliado = ampliado.getContext("2d");
+  if (!contextoAmpliado) return base;
+  contextoAmpliado.imageSmoothingEnabled = true;
+  contextoAmpliado.imageSmoothingQuality = "high";
+  contextoAmpliado.drawImage(base, 0, 0, ampliado.width, ampliado.height);
+  return ampliado;
+}
+
+async function paraImagemReconhecivel(arquivo: File): Promise<HTMLCanvasElement> {
+  const canvas = arquivo.type === "application/pdf"
+    ? await pdfParaCanvas(arquivo)
+    : await imagemParaCanvas(arquivo);
+  return prepararParaOcr(canvas);
 }
 
 const DATA_REGEX = /(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{2,4})/g;
@@ -97,10 +233,13 @@ function extrairValor(texto: string): number | null {
   const ehLinhaDeItensOuSubtotal = (linhaBaixa: string) =>
     linhaBaixa.includes("itens") || linhaBaixa.includes("quantidade") || linhaBaixa.includes("qtd") || linhaBaixa.includes("subtotal");
 
-  // 1ª prioridade: uma linha com "valor total" explícito.
+  // 1ª prioridade: uma linha com "valor total" ou "total a pagar" explícito.
   for (const linha of linhas) {
     const linhaBaixa = linha.toLowerCase();
-    if (linhaBaixa.includes("valor total") && !ehLinhaDeItensOuSubtotal(linhaBaixa)) {
+    if (
+      (linhaBaixa.includes("valor total") || linhaBaixa.includes("total a pagar") || linhaBaixa.includes("a pagar")) &&
+      !ehLinhaDeItensOuSubtotal(linhaBaixa)
+    ) {
       const numeros = numerosDaLinha(linha);
       if (numeros.length) return Math.max(...numeros);
     }
@@ -121,9 +260,19 @@ function extrairValor(texto: string): number | null {
 }
 
 export async function reconhecerComprovante(arquivo: File): Promise<ReconhecimentoComprovante> {
-  const { recognize } = await import("tesseract.js");
+  const { createWorker, PSM } = await import("tesseract.js");
   const imagem = await paraImagemReconhecivel(arquivo);
-  const resultado = await recognize(imagem, "por");
-  const texto = resultado.data.text || "";
-  return { data: extrairData(texto), valor: extrairValor(texto), texto };
+
+  const worker = await createWorker("por");
+  try {
+    // Cupom fiscal é essencialmente uma coluna única de texto (largura
+    // estreita) — um bloco uniforme funciona melhor que a segmentação
+    // automática, que tende a espalhar as linhas de um recibo estreito.
+    await worker.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_BLOCK });
+    const resultado = await worker.recognize(imagem);
+    const texto = resultado.data.text || "";
+    return { data: extrairData(texto), valor: extrairValor(texto), texto };
+  } finally {
+    await worker.terminate();
+  }
 }
