@@ -27,7 +27,21 @@ function smtpConfigurado(): boolean {
   );
 }
 
+// Em hospedagem serverless o disco é somente leitura: falhar ao gravar a
+// cópia local não pode esconder nem derrubar o resultado real do envio.
 async function gravarNaCaixaDeSaida(
+  para: string,
+  assunto: string,
+  html: string
+): Promise<string | undefined> {
+  try {
+    return await gravarArquivoDeSaida(para, assunto, html);
+  } catch {
+    return undefined;
+  }
+}
+
+async function gravarArquivoDeSaida(
   para: string,
   assunto: string,
   html: string

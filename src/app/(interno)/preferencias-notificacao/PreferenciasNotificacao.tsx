@@ -16,6 +16,8 @@ export default function PreferenciasNotificacao({ email }: { email: string }) {
   });
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState("");
+  const [testando, setTestando] = useState(false);
+  const [resultadoTeste, setResultadoTeste] = useState<{ ok: boolean; texto: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/preferencias-notificacao").then(r => r.json()).then(j => {
@@ -43,12 +45,29 @@ export default function PreferenciasNotificacao({ email }: { email: string }) {
     setSalvando(false);
   }
 
+  async function enviarTeste() {
+    setTestando(true); setResultadoTeste(null);
+    try {
+      const r = await fetch("/api/preferencias-notificacao/teste", { method: "POST" });
+      const j = await r.json().catch(() => ({}));
+      setResultadoTeste(r.ok
+        ? { ok: true, texto: `E-mail de teste enviado para ${j.para}. Confira a caixa de entrada (e o spam).` }
+        : { ok: false, texto: `Não foi possível enviar: ${j.erro ?? "erro desconhecido"}` });
+    } catch {
+      setResultadoTeste({ ok: false, texto: "Não foi possível enviar: falha de conexão." });
+    } finally {
+      setTestando(false);
+    }
+  }
+
   return (
     <div className="fm-pref-wrap">
       <section className="fm-pref-card">
         <h2>✉ E-mail que receberá os alertas</h2>
         <strong>{dados.email}</strong>
         <p>As notificações serão enviadas para o e-mail cadastrado na sua conta.</p>
+        <button type="button" className="botao discreto mini" onClick={enviarTeste} disabled={testando}>{testando ? "Enviando…" : "Enviar e-mail de teste"}</button>
+        {resultadoTeste && <p style={{ marginTop: 8, color: resultadoTeste.ok ? "var(--fm-success)" : "var(--fm-danger)" }}>{resultadoTeste.texto}</p>}
       </section>
 
       <section className="fm-pref-card">
