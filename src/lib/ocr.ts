@@ -38,36 +38,86 @@ async function paraImagemReconhecivel(arquivo: File): Promise<File | HTMLCanvasE
   return canvas;
 }
 
-/**
- * Datas em formato brasileiro (DD/MM/AAAA, DD-MM-AA etc). Entre várias
- * encontradas no texto, a primeira que forma uma data plausível vence — um
- * comprovante costuma trazer a data de emissão logo no topo.
- */
-function extrairData(texto: string): string | null {
-  const candidatos = Array.from(texto.matchAll(/(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{2,4})/g));
-  for (const m of candidatos) {
-    const dia = Number(m[1]);
-    const mes = Number(m[2]);
-    const anoBruto = m[3];
-    const ano = Number(anoBruto.length === 2 ? `20${anoBruto}` : anoBruto);
-    if (mes >= 1 && mes <= 12 && dia >= 1 && dia <= 31 && ano >= 2000 && ano <= 2100) {
-      return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-    }
+const DATA_REGEX = /(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{2,4})/g;
+const HORA_REGEX = /\d{1,2}:\d{2}(?::\d{2})?/;
+
+function dataValida(dia: number, mes: number, anoBruto: string): string | null {
+  const ano = Number(anoBruto.length === 2 ? `20${anoBruto}` : anoBruto);
+  if (mes >= 1 && mes <= 12 && dia >= 1 && dia <= 31 && ano >= 2000 && ano <= 2100) {
+    return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
   }
   return null;
 }
 
 /**
- * Valores em formato brasileiro (1.234,56). Entre vários números no
- * comprovante (subtotal, taxa, total...), o maior costuma ser o total —
- * heurística simples, mas melhor do que pegar o primeiro número que aparece.
+ * Datas em formato brasileiro (DD/MM/AAAA, DD-MM-AA etc). Um cupom fiscal
+ * (NFC-e) tem várias sequências de números que parecem data (CNPJ, número de
+ * protocolo...), então a prioridade é uma data seguida de perto por um
+ * horário (HH:MM ou HH:MM:SS) — isso é a assinatura da linha de emissão, e
+ * dificilmente aparece por acaso num CNPJ. Só na ausência disso caímos de
+ * volta para a primeira data plausível encontrada em qualquer lugar.
  */
-function extrairValor(texto: string): number | null {
-  const candidatos = Array.from(texto.matchAll(/(\d{1,3}(?:\.\d{3})*,\d{2})/g))
+function extrairData(texto: string): string | null {
+  const candidatos = Array.from(texto.matchAll(DATA_REGEX));
+
+  for (const m of candidatos) {
+    const resto = texto.slice((m.index ?? 0) + m[0].length, (m.index ?? 0) + m[0].length + 20);
+    if (HORA_REGEX.test(resto.slice(0, 12))) {
+      const data = dataValida(Number(m[1]), Number(m[2]), m[3]);
+      if (data) return data;
+    }
+  }
+
+  for (const m of candidatos) {
+    const data = dataValida(Number(m[1]), Number(m[2]), m[3]);
+    if (data) return data;
+  }
+
+  return null;
+}
+
+const VALOR_REGEX = /(\d{1,3}(?:\.\d{3})*,\d{2})/g;
+
+function numerosDaLinha(linha: string): number[] {
+  return Array.from(linha.matchAll(VALOR_REGEX))
     .map((m) => parseFloat(m[1].replace(/\./g, "").replace(",", ".")))
     .filter((v) => Number.isFinite(v) && v > 0);
-  if (candidatos.length === 0) return null;
-  return Math.max(...candidatos);
+}
+
+/**
+ * Valores em formato brasileiro (1.234,56). Um cupom fiscal traz vários
+ * números (preço de cada item, subtotal, troco...), então em vez de pegar o
+ * maior número do documento inteiro, procuramos especificamente a linha do
+ * "Valor Total" — ignorando linhas como "QTD. TOTAL DE ITENS" ou "Subtotal",
+ * que também contêm a palavra "total" mas não são o valor a pagar.
+ */
+function extrairValor(texto: string): number | null {
+  const linhas = texto.split(/\r?\n/);
+
+  const ehLinhaDeItensOuSubtotal = (linhaBaixa: string) =>
+    linhaBaixa.includes("itens") || linhaBaixa.includes("quantidade") || linhaBaixa.includes("qtd") || linhaBaixa.includes("subtotal");
+
+  // 1ª prioridade: uma linha com "valor total" explícito.
+  for (const linha of linhas) {
+    const linhaBaixa = linha.toLowerCase();
+    if (linhaBaixa.includes("valor total") && !ehLinhaDeItensOuSubtotal(linhaBaixa)) {
+      const numeros = numerosDaLinha(linha);
+      if (numeros.length) return Math.max(...numeros);
+    }
+  }
+
+  // 2ª prioridade: qualquer linha com "total" que não seja de itens/subtotal.
+  for (const linha of linhas) {
+    const linhaBaixa = linha.toLowerCase();
+    if (linhaBaixa.includes("total") && !ehLinhaDeItensOuSubtotal(linhaBaixa)) {
+      const numeros = numerosDaLinha(linha);
+      if (numeros.length) return Math.max(...numeros);
+    }
+  }
+
+  // Sem nenhuma linha de total reconhecível: cai no maior número do texto.
+  const candidatos = numerosDaLinha(texto);
+  return candidatos.length ? Math.max(...candidatos) : null;
 }
 
 export async function reconhecerComprovante(arquivo: File): Promise<ReconhecimentoComprovante> {

@@ -26,8 +26,19 @@ export default function CapturarFoto({
     setErro(null);
     let cancelado = false;
 
+    // Resolução alta de propósito: comprovantes têm letra miúda, e a
+    // resolução padrão da câmera (muitas vezes 640x480) deixa o texto
+    // ilegível tanto para a pessoa quanto para a leitura automática.
+    // "ideal" pede o máximo que o dispositivo aguentar, sem travar em
+    // aparelhos mais fracos que não cheguem lá.
     navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: "environment" } })
+      .getUserMedia({
+        video: {
+          facingMode: "environment",
+          width: { ideal: 3840 },
+          height: { ideal: 2160 },
+        },
+      })
       .then((stream) => {
         if (cancelado) {
           stream.getTracks().forEach((t) => t.stop());
