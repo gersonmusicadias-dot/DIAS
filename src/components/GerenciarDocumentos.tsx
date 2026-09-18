@@ -27,6 +27,7 @@ interface Documento {
   situacao: string; medicao: string | null; temMovimento: boolean;
   numero?: string; faturado?: number; emitida?: boolean;
   identificador?: string; descricao?: string; emitido?: number; foiEmitido?: boolean; origem?: string;
+  observacoes?: string | null;
   substitui?: string | null; substituidoPor?: string | null; versaoSubstituicao?: number;
   motivoSubstituicao?: string | null; substituidoEm?: string | null;
   anexos: { id: string; nomeArquivo: string; tamanhoBytes: number; mimeType?: string }[];
@@ -79,7 +80,7 @@ export default function GerenciarDocumentos({
   const [form, setForm] = useState({
     clienteId: "", medicaoId: "", doc: "", descricao: "",
     competencia: competenciaHoje(), valorPrevisto: "",
-    emitido: false, dataEmissao: hojeISO(), valorDoc: "", previsaoRecebimento: "",
+    emitido: false, dataEmissao: hojeISO(), valorDoc: "", previsaoRecebimento: "", observacoes: "",
   });
 
   async function carregar() {
@@ -122,6 +123,7 @@ export default function GerenciarDocumentos({
       dataEmissao: hojeISO(),
       valorDoc: "",
       previsaoRecebimento: "",
+      observacoes: "",
     });
     setFormAberto(true);
   }
@@ -148,6 +150,7 @@ export default function GerenciarDocumentos({
         ? String(faturadoDe(d)).replace(".", ",")
         : "",
       previsaoRecebimento: d.previsaoRecebimento ?? "",
+      observacoes: d.observacoes ?? "",
     });
 
     setFormAberto(true);
@@ -198,6 +201,7 @@ export default function GerenciarDocumentos({
               dataEmissao: form.dataEmissao,
               valorNota: paraNumero(form.valorDoc),
               previsaoRecebimento: form.previsaoRecebimento || null,
+              observacoes: form.observacoes.trim() || null,
             }
           : {
               clienteId: form.clienteId,
@@ -207,6 +211,7 @@ export default function GerenciarDocumentos({
               dataEmissao: form.dataEmissao,
               previsaoRecebimento: form.previsaoRecebimento || null,
               numero: form.doc,
+              observacoes: form.observacoes.trim() || null,
               emitida: true,
               valorNota: paraNumero(form.valorDoc),
             }
@@ -227,6 +232,7 @@ export default function GerenciarDocumentos({
               origem: form.medicaoId ? "MEDICAO" : "AVULSO",
               emitido: form.emitido,
               valorRecibo: form.emitido ? paraNumero(form.valorDoc) : null,
+              observacoes: form.observacoes.trim() || null,
             }
           : {
               clienteId: form.clienteId,
@@ -239,6 +245,7 @@ export default function GerenciarDocumentos({
               origem: form.medicaoId ? "MEDICAO" : "AVULSO",
               emitido: form.emitido,
               valorRecibo: form.emitido ? paraNumero(form.valorDoc) : null,
+              observacoes: form.observacoes.trim() || null,
             };
 
       const r = await fetch(cfg.rota, {
@@ -266,6 +273,7 @@ export default function GerenciarDocumentos({
         dataEmissao: hojeISO(),
         valorDoc: "",
         previsaoRecebimento: "",
+        observacoes: "",
       });
 
       await carregar();
@@ -495,6 +503,10 @@ export default function GerenciarDocumentos({
                           <label>Previsão de recebimento</label>
                           <input type="date" value={form.previsaoRecebimento} onChange={(e) => campo("previsaoRecebimento", e.target.value)} disabled={salvando || (!!form.medicaoId && !editandoId)} style={{ colorScheme: "dark" }} />
                         </div>
+                        <div className="fm-custo-campo fm-observacao-campo">
+                          <label>Observação</label>
+                          <textarea value={form.observacoes} onChange={(e) => campo("observacoes", e.target.value)} placeholder="Anotações sobre este documento (opcional)" maxLength={1000} rows={3} disabled={salvando} />
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -626,6 +638,10 @@ export default function GerenciarDocumentos({
                             <CampoMoeda value={form.valorDoc} onChange={(e) => campo("valorDoc", e.target.value)} placeholder="0,00" required disabled={salvando} />
                           </div>
                         )}
+                        <div className="fm-custo-campo fm-observacao-campo">
+                          <label>Observação</label>
+                          <textarea value={form.observacoes} onChange={(e) => campo("observacoes", e.target.value)} placeholder="Anotações sobre este documento (opcional)" maxLength={1000} rows={3} disabled={salvando} />
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -807,6 +823,9 @@ export default function GerenciarDocumentos({
                 <div><label className="rotulo">A receber</label><div className="campo">{foiEmitido(visualizando) ? real(visualizando.saldo) : "—"}</div></div>
                 <div><label className="rotulo">Previsão de recebimento</label><div className="campo">{visualizando.previsaoRecebimento ? dataBR(visualizando.previsaoRecebimento) : "—"}</div></div>
                 <div><label className="rotulo">Situação</label><div className="campo"><span className={`selo ${classeSelo(visualizando.situacao)}`}>{visualizando.situacao}</span></div></div>
+                {visualizando.observacoes && (
+                  <div className="largo"><label className="rotulo">Observação</label><div className="campo" style={{ minHeight:70, whiteSpace:"pre-wrap", alignItems:"flex-start" }}>{visualizando.observacoes}</div></div>
+                )}
                 {tipo === "recibo" && visualizando.descricao && (
                   <div className="largo"><label className="rotulo">Descrição</label><div className="campo" style={{ minHeight:70, whiteSpace:"pre-wrap", alignItems:"flex-start" }}>{visualizando.descricao}</div></div>
                 )}

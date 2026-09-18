@@ -148,6 +148,7 @@ export async function POST(req: Request, { params }: Ctx) {
         valorPrevisto: valorFinal,
         valorRecibo: valorFinal,
         previsaoRecebimento: previsaoFinal,
+        observacoes: atual.observacoes,
         status: "EMITIDO",
         substituiReciboId: atual.id,
         versaoSubstituicao: versao,

@@ -9895,3 +9895,15 @@ body {
    FIM — CUSTOS — MODO CLARO RECONSTRUÍDO
 ============================================================ */
 
+
+/* Campo de observação (Custos, Notas Fiscais, Recibos) */
+.casca .fm-observacao-campo { grid-column: 1 / -1; }
+.casca .fm-observacao-campo textarea {
+  width: 100%; min-height: 84px; padding: 11px 14px; resize: vertical;
+  border: 1px solid var(--fm-border-strong); border-radius: 10px;
+  background: var(--fm-bg-soft); color: var(--fm-text);
+  font: inherit; font-size: 13px; line-height: 1.45; outline: 0;
+}
+.casca .fm-observacao-campo textarea::placeholder { color: var(--fm-faint); }
+.casca .fm-observacao-campo textarea:focus { border-color: var(--fm-brand); box-shadow: 0 0 0 3px var(--fm-brand-soft); }
+.casca .fm-observacao-campo textarea:disabled { opacity: .6; cursor: not-allowed; }

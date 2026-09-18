@@ -43,6 +43,7 @@ export async function GET() {
         competencia: n.competencia,
         dataEmissao: n.dataEmissao,
         previsaoRecebimento: n.previsaoRecebimento,
+        observacoes: n.observacoes,
         valorPrevisto: n.valorPrevisto,
         faturado: f.faturado,
         recebido: f.recebido,
@@ -70,6 +71,7 @@ const nova = z.object({
   dataEmissao: z.string().regex(DATA, "Data de emissão inválida."),
   valorNota: z.number().positive("O valor da nota deve ser maior que zero."),
   previsaoRecebimento: z.string().regex(DATA).optional().nullable(),
+  observacoes: z.string().max(1000, "A observação pode ter no máximo 1000 caracteres.").optional().nullable(),
 });
 
 async function validarMedicao(clienteId: string, medicaoId: string | null | undefined, valor: number, ignorarNotaId?: string) {
@@ -132,6 +134,7 @@ export async function POST(req: Request) {
       valorPrevisto: d.valorNota,
       valorNota: d.valorNota,
       previsaoRecebimento: d.previsaoRecebimento || null,
+      observacoes: d.observacoes?.trim() || null,
       status: "EMITIDA",
     },
   });
@@ -223,6 +226,7 @@ export async function PATCH(req: Request) {
       valorPrevisto: d.valorNota,
       valorNota: d.valorNota,
       previsaoRecebimento: d.previsaoRecebimento || null,
+      observacoes: d.observacoes?.trim() || null,
       status: "EMITIDA",
     },
   });

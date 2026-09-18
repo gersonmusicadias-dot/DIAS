@@ -77,6 +77,7 @@ export async function GET() {
         competencia: r.competencia,
         dataEmissao: r.dataEmissao,
         previsaoRecebimento: r.previsaoRecebimento,
+        observacoes: r.observacoes,
         valorPrevisto: r.valorPrevisto,
         emitido: f.emitido,
         recebido: f.recebido,
@@ -114,6 +115,7 @@ const novo = z.object({
   dataEmissao: z.string().regex(DATA).optional().nullable(),
   valorRecibo: z.number().positive().optional().nullable(),
   previsaoRecebimento: z.string().regex(DATA).optional().nullable(),
+  observacoes: z.string().max(1000, "A observação pode ter no máximo 1000 caracteres.").optional().nullable(),
 });
 
 export async function POST(req: Request) {
@@ -207,6 +209,7 @@ export async function POST(req: Request) {
         valorPrevisto: valorPrevistoFinal,
         valorRecibo: valorReciboFinal,
         previsaoRecebimento: previsaoRecebimentoFinal,
+        observacoes: d.observacoes?.trim() || null,
         status: d.emitido ? "EMITIDO" : "PREVISTO",
       },
     });
@@ -392,6 +395,7 @@ export async function PATCH(req: Request) {
         valorPrevisto: valorPrevistoFinal,
         valorRecibo: valorReciboFinal,
         previsaoRecebimento: previsaoFinal,
+        observacoes: d.observacoes?.trim() || null,
         status: permaneceraEmitido ? "EMITIDO" : "PREVISTO",
       },
     });

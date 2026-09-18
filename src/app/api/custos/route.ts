@@ -39,6 +39,7 @@ export async function GET() {
         categoria: c.categoria?.nome ?? null,
         categoriaId: c.categoriaId,
         competencia: c.competencia, vencimento: c.vencimento,
+        observacoes: c.observacoes,
         previsto: f.previsto, pago: f.pago, saldo: f.saldo,
         // Situação é derivada, nunca gravada: assim não há como o status
         // gravado divergir dos eventos.
@@ -57,7 +58,7 @@ const novoCusto = z.object({
   competencia: z.string().regex(COMPETENCIA, "Competência inválida (AAAA-MM)."),
   vencimento: z.string().regex(DATA, "Vencimento inválido (AAAA-MM-DD)."),
   valorPrevisto: z.number().positive("O valor previsto deve ser maior que zero."),
-  observacoes: z.string().optional(),
+  observacoes: z.string().max(1000, "A observação pode ter no máximo 1000 caracteres.").optional().nullable(),
 });
 
 const criarCusto = novoCusto.extend({

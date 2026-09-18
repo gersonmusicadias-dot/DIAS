@@ -19,6 +19,7 @@ const LIMITE_BYTES_COMPROVANTE = 10 * 1024 * 1024;
 interface Categoria { id: string; nome: string; tipo: string }
 
 interface Custo {
+  observacoes?: string | null;
   id: string; descricao: string; tipo: string; categoria: string | null; categoriaId: string | null;
   competencia: string; vencimento: string;
   previsto: number; pago: number; saldo: number;
@@ -53,6 +54,7 @@ export default function GerenciarCustos({
   const [competencia, setCompetencia] = useState(() => competenciaHoje());
   const [vencimento, setVencimento] = useState("");
   const [valor, setValor] = useState("");
+  const [observacoes, setObservacoes] = useState("");
   const [recorrente, setRecorrente] = useState(false);
   const [mesesRecorrencia, setMesesRecorrencia] = useState("12");
   const [salvando, setSalvando] = useState(false);
@@ -100,6 +102,7 @@ export default function GerenciarCustos({
     setCompetencia(competenciaHoje());
     setVencimento("");
     setValor("");
+    setObservacoes("");
     setRecorrente(false);
     setMesesRecorrencia("12");
     setEditandoId(null);
@@ -203,6 +206,7 @@ export default function GerenciarCustos({
     setCompetencia(c.competencia);
     setVencimento(c.vencimento);
     setValor(String(c.previsto).replace(".", ","));
+    setObservacoes(c.observacoes ?? "");
 
     setFormAberto(true);
   }
@@ -237,6 +241,7 @@ export default function GerenciarCustos({
           competencia,
           vencimento,
           valorPrevisto,
+          observacoes: observacoes.trim() || null,
           ...(!editandoId
             ? { recorrente, mesesRecorrencia: recorrente ? quantidadeRecorrencia : undefined }
             : {}),
@@ -519,6 +524,18 @@ export default function GerenciarCustos({
                     </div>
                   </div>
 
+                  <div className="fm-custo-campo fm-observacao-campo">
+                    <label>Observação</label>
+                    <textarea
+                      value={observacoes}
+                      onChange={(e) => setObservacoes(e.target.value)}
+                      placeholder="Anotações sobre este custo (opcional)"
+                      maxLength={1000}
+                      rows={3}
+                      disabled={salvando}
+                    />
+                  </div>
+
                   <div className="fm-custo-campo fm-comprovante-campo">
                     <label>Comprovante (opcional)</label>
                     <p className="fm-comprovante-ajuda">
@@ -715,6 +732,9 @@ export default function GerenciarCustos({
                 <div><label className="rotulo">Pago</label><div className="campo">{real(visualizando.pago)}</div></div>
                 <div><label className="rotulo">Saldo</label><div className="campo">{real(visualizando.saldo)}</div></div>
                 <div><label className="rotulo">Situação</label><div className="campo"><span className={`selo ${SELO[visualizando.situacao] ?? "off"}`}>{visualizando.situacao}</span></div></div>
+                {visualizando.observacoes && (
+                  <div className="largo"><label className="rotulo">Observação</label><div className="campo" style={{ minHeight:70, whiteSpace:"pre-wrap", alignItems:"flex-start" }}>{visualizando.observacoes}</div></div>
+                )}
               </div>
               <div style={{ marginTop: 20 }}>
                 <label className="rotulo">Anexo (PDF, JPEG ou PNG)</label>

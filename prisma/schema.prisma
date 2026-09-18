@@ -248,6 +248,7 @@ model NotaFiscal {
   valorPrevisto       Float
   valorNota           Float
   previsaoRecebimento String?
+  observacoes        String?
   status              String  @default("PREVISTA")
 
   recebimentos RecebimentoNota[]
@@ -292,6 +293,7 @@ model Recibo {
   valorPrevisto       Float
   valorRecibo         Float
   previsaoRecebimento String?
+  observacoes        String?
   status              String  @default("PREVISTO")
 
 

@@ -30,7 +30,7 @@ export default async function PaginaCustos() {
       valorPrevisto: c.valorPrevisto, categoriaNome: c.categoria?.nome,
       pagamentos: c.pagamentos.map((p) => ({ id: p.id, data: p.data, valor: p.valor, tipo: p.tipo === "REVERSAL" ? "REVERSAL" : "NORMAL" })),
     });
-    return { id: c.id, descricao: c.descricao, tipo: c.tipo, categoria: c.categoria?.nome ?? null, categoriaId: c.categoriaId, competencia: c.competencia, vencimento: c.vencimento, previsto: f.previsto, pago: f.pago, saldo: f.saldo, situacao: f.pago <= 0 ? "PREVISTO" : f.saldo > 0 ? "PARCIAL" : "PAGO", temMovimento: c.pagamentos.length > 0, anexos: c.anexos };
+    return { id: c.id, descricao: c.descricao, tipo: c.tipo, categoria: c.categoria?.nome ?? null, categoriaId: c.categoriaId, competencia: c.competencia, vencimento: c.vencimento, observacoes: c.observacoes, previsto: f.previsto, pago: f.pago, saldo: f.saldo, situacao: f.pago <= 0 ? "PREVISTO" : f.saldo > 0 ? "PARCIAL" : "PAGO", temMovimento: c.pagamentos.length > 0, anexos: c.anexos };
   });
 
   return (
