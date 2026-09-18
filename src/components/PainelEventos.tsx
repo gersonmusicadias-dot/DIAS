@@ -42,6 +42,9 @@ export default function PainelEventos({
 
   const [data, setData] = useState(hojeISO());
   const [valor, setValor] = useState("");
+  // Enquanto a pessoa não mexe no campo, ele acompanha o saldo em aberto: o
+  // valor cadastrado na primeira vez, o que falta depois de um pagamento parcial.
+  const [valorEditado, setValorEditado] = useState(false);
   const [estornando, setEstornando] = useState<EventoLido | null>(null);
   const [motivo, setMotivo] = useState("");
 
@@ -53,6 +56,11 @@ export default function PainelEventos({
   }
 
   useEffect(() => { carregar(); /* eslint-disable-next-line */ }, [rota]);
+
+  useEffect(() => {
+    if (carregando || estornando || valorEditado) return;
+    setValor(saldo > 0 ? saldo.toFixed(2).replace(".", ",") : "");
+  }, [carregando, saldo, estornando, valorEditado]);
 
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault();
@@ -71,7 +79,7 @@ export default function PainelEventos({
       const resposta = await r.json();
       if (!r.ok) { setErro(resposta.erro); return; }
 
-      setValor(""); setMotivo(""); setEstornando(null);
+      setValor(""); setMotivo(""); setEstornando(null); setValorEditado(false);
       await carregar();
       aoMudar();
     } finally { setEnviando(false); }
@@ -117,7 +125,7 @@ export default function PainelEventos({
                 <div>
                   <label className="rotulo">Valor</label>
                   <div className="campo" style={{ marginBottom: 0 }}>
-                    <CampoMoeda value={valor} onChange={(e) => setValor(e.target.value)}
+                    <CampoMoeda value={valor} onChange={(e) => { setValor(e.target.value); setValorEditado(true); }}
                       placeholder="0,00" required disabled={enviando} />
                   </div>
                 </div>
@@ -136,7 +144,7 @@ export default function PainelEventos({
                   </button>
                   {estornando && (
                     <button type="button" className="botao discreto"
-                      onClick={() => { setEstornando(null); setValor(""); setMotivo(""); }}>
+                      onClick={() => { setEstornando(null); setValor(""); setMotivo(""); setValorEditado(false); }}>
                       Cancelar estorno
                     </button>
                   )}
