@@ -8431,6 +8431,28 @@ html.light .barra-filtros,
 .casca .fm-anexo-pdf-confirmar { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--fm-muted); }
 .casca .fm-anexo-pdf-botao { cursor: pointer; display: inline-flex; }
 .casca .fm-anexo-pdf-botao.desabilitado { opacity: .6; cursor: not-allowed; }
+.casca .fm-anexo-pdf-acoes-vazio { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.casca .fm-anexo-pdf-miniatura { display: block; width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 1px solid var(--fm-border); }
+
+/* Comprovante no formulário de Custo (com leitura automática) */
+.casca .fm-comprovante-campo { grid-column: 1 / -1; }
+.casca .fm-comprovante-ajuda { margin: 2px 0 8px; font-size: 11.5px; color: var(--fm-faint); }
+.casca .fm-comprovante-acoes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.casca .fm-comprovante-preview { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; border: 1px solid var(--fm-border); border-radius: 10px; background: var(--fm-surface-2); }
+.casca .fm-comprovante-miniatura { width: 40px; height: 40px; object-fit: cover; border-radius: 7px; }
+.casca .fm-comprovante-icone { font-size: 20px; }
+.casca .fm-comprovante-nome { flex: 1; min-width: 0; font-size: 12.5px; color: var(--fm-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.casca .fm-comprovante-status { margin: 8px 0 0; font-size: 12px; color: var(--fm-brand); }
+
+/* Câmera com prévia (Custos, Notas Fiscais, Recibos) */
+.casca .fm-camera-overlay { position: fixed; inset: 0; z-index: 10090; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(2,12,22,.8); backdrop-filter: blur(5px); }
+.casca .fm-camera-caixa { width: min(520px, 100%); border-radius: 16px; background: var(--fm-surface); border: 1px solid var(--fm-border-strong); box-shadow: 0 28px 90px -32px rgba(0,0,0,.88); overflow: hidden; }
+.casca .fm-camera-cabecalho { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--fm-border); }
+.casca .fm-camera-cabecalho h3 { margin: 0; font-size: 16px; color: var(--fm-text); }
+.casca .fm-camera-visor { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.casca .fm-camera-visor video,
+.casca .fm-camera-visor img { width: 100%; height: 100%; object-fit: cover; }
+.casca .fm-camera-acoes { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 18px; border-top: 1px solid var(--fm-border); }
 @media (max-width:720px){.casca .fm-custos-resumo{grid-template-columns:1fr}}
 .casca,.casca button,.casca input,.casca select,.casca textarea{-webkit-font-smoothing:auto;-moz-osx-font-smoothing:auto;text-rendering:auto}
 .casca svg{shape-rendering:geometricPrecision}

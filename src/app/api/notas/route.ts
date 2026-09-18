@@ -19,7 +19,7 @@ export async function GET() {
       cliente: { select: { nomeFantasia: true } },
       medicao: { select: { identificador: true } },
       recebimentos: true,
-      anexo: { select: { nomeArquivo: true, tamanhoBytes: true } },
+      anexo: { select: { nomeArquivo: true, tamanhoBytes: true, mimeType: true } },
     },
     orderBy: [{ competencia: "desc" }, { numero: "asc" }],
   });

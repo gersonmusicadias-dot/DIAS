@@ -18,7 +18,7 @@ export default async function PaginaCustos() {
     include: {
       categoria: { select: { id: true, nome: true } },
       pagamentos: true,
-      anexo: { select: { nomeArquivo: true, tamanhoBytes: true } },
+      anexo: { select: { nomeArquivo: true, tamanhoBytes: true, mimeType: true } },
     },
     orderBy: [{ competencia: "desc" }, { vencimento: "asc" }],
   });

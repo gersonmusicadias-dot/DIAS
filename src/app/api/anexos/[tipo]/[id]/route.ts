@@ -6,6 +6,7 @@ import { registrarAuditoria } from "@/lib/auditoria";
 export const runtime = "nodejs";
 
 const LIMITE_BYTES = 10 * 1024 * 1024;
+const TIPOS_ACEITOS = new Set(["application/pdf", "image/jpeg", "image/png"]);
 
 type TipoLancamento = "custo" | "medicao" | "nota" | "recibo";
 
@@ -102,7 +103,7 @@ export async function GET(
 
   if (!anexo) {
     return NextResponse.json(
-      { erro: "Nenhum PDF anexado a este lançamento." },
+      { erro: "Nenhum anexo encontrado para este lançamento." },
       { status: 404 },
     );
   }
@@ -148,14 +149,14 @@ export async function POST(
 
   if (!(arquivo instanceof File)) {
     return NextResponse.json(
-      { erro: "Selecione um arquivo PDF." },
+      { erro: "Selecione um arquivo PDF, JPEG ou PNG." },
       { status: 400 },
     );
   }
 
-  if (arquivo.type !== "application/pdf") {
+  if (!TIPOS_ACEITOS.has(arquivo.type)) {
     return NextResponse.json(
-      { erro: "Somente arquivos PDF são permitidos." },
+      { erro: "Somente arquivos PDF, JPEG ou PNG são permitidos." },
       { status: 400 },
     );
   }
@@ -169,15 +170,15 @@ export async function POST(
 
   if (arquivo.size > LIMITE_BYTES) {
     return NextResponse.json(
-      { erro: "O PDF não pode ultrapassar 10 MB." },
+      { erro: "O arquivo não pode ultrapassar 10 MB." },
       { status: 400 },
     );
   }
 
   const conteudo = Buffer.from(await arquivo.arrayBuffer());
   const dadosBase = {
-    nomeArquivo: arquivo.name || "documento.pdf",
-    mimeType: "application/pdf",
+    nomeArquivo: arquivo.name || "documento",
+    mimeType: arquivo.type,
     tamanhoBytes: arquivo.size,
     conteudo,
   };
@@ -223,9 +224,9 @@ export async function POST(
   await registrarAuditoria({
     sessao: guarda.sessao,
     modulo: nomeModulo(tipo),
-    acao: anexoAnterior ? "substituir_anexo" : "anexar_pdf",
+    acao: anexoAnterior ? "substituir_anexo" : "anexar_arquivo",
     registroId: id,
-    descricao: `${anexoAnterior ? "PDF substituído" : "PDF anexado"} no lançamento ${nomeRegistro(tipo, registro)}.`,
+    descricao: `${anexoAnterior ? "Anexo substituído" : "Anexo adicionado"} no lançamento ${nomeRegistro(tipo, registro)}.`,
     depois: {
       id: anexo.id,
       nomeArquivo: anexo.nomeArquivo,
@@ -268,7 +269,7 @@ export async function DELETE(
 
   if (!anexo) {
     return NextResponse.json(
-      { erro: "Nenhum PDF anexado a este lançamento." },
+      { erro: "Nenhum anexo encontrado para este lançamento." },
       { status: 404 },
     );
   }
@@ -282,7 +283,7 @@ export async function DELETE(
     modulo: nomeModulo(tipo),
     acao: "remover_anexo",
     registroId: id,
-    descricao: `PDF removido do lançamento ${id}.`,
+    descricao: `Anexo removido do lançamento ${id}.`,
     antes: {
       id: anexo.id,
       nomeArquivo: anexo.nomeArquivo,

@@ -54,7 +54,7 @@ export async function GET() {
       recebimentos: true,
       substitui: { select: { identificador: true } },
       substituidoPor: { select: { identificador: true } },
-      anexo: { select: { nomeArquivo: true, tamanhoBytes: true } },
+      anexo: { select: { nomeArquivo: true, tamanhoBytes: true, mimeType: true } },
     },
     orderBy: [{ competencia: "desc" }, { identificador: "asc" }],
   });
