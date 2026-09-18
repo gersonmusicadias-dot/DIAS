@@ -159,15 +159,20 @@ export default function GerenciarDocumentos({
   }
   function selecionarMedicao(valor: string) {
     if (!valor) {
-      setForm((f) => ({ ...f, medicaoId: "", valorPrevisto: "", previsaoRecebimento: "" }));
+      setForm((f) => ({ ...f, medicaoId: "", valorPrevisto: "", valorDoc: "", previsaoRecebimento: "" }));
       return;
     }
     const m = medicoes.find((x) => x.id === valor);
     if (!m) return;
+    const valorFormatado = m.aFaturar.toFixed(2).replace(".", ",");
     setForm((f) => ({
       ...f,
       medicaoId: m.id,
-      valorPrevisto: m.aFaturar.toFixed(2).replace(".", ","),
+      valorPrevisto: valorFormatado,
+      // A nota fiscal lê o valor de valorDoc (não valorPrevisto) — sem isso,
+      // criar uma NF vinculada a uma medição enviava valorNota vazio e a API
+      // recusava com 400, tornando o vínculo impossível pela tela.
+      valorDoc: valorFormatado,
       previsaoRecebimento: m.previsaoRecebimento ?? "",
     }));
   }
@@ -209,7 +214,10 @@ export default function GerenciarDocumentos({
               acao: "editar",
               clienteId: form.clienteId,
               medicaoId: form.medicaoId || null,
-              competencia: form.dataEmissao.slice(0, 7),
+              // Só emitido tem data de emissão para derivar o mês; um recibo
+              // previsto usa a competência já carregada, não a de hoje —
+              // senão editar um recibo previsto move a receita de mês.
+              competencia: form.emitido ? form.dataEmissao.slice(0, 7) : form.competencia,
               valorPrevisto: paraNumero(form.valorPrevisto),
               dataEmissao: form.emitido ? form.dataEmissao : null,
               previsaoRecebimento: form.previsaoRecebimento || null,
@@ -221,7 +229,7 @@ export default function GerenciarDocumentos({
           : {
               clienteId: form.clienteId,
               medicaoId: form.medicaoId || null,
-              competencia: form.dataEmissao.slice(0, 7),
+              competencia: form.emitido ? form.dataEmissao.slice(0, 7) : form.competencia,
               valorPrevisto: paraNumero(form.valorPrevisto),
               dataEmissao: form.emitido ? form.dataEmissao : null,
               previsaoRecebimento: form.previsaoRecebimento || null,
@@ -921,7 +929,7 @@ export default function GerenciarDocumentos({
           rota={`${cfg.rota}/${recebendo.id}/${cfg.eventos}`}
           titulo="Recebimentos"
           documento={`${rotuloDe(recebendo)} · ${recebendo.cliente}`}
-          previsto={recebendo.valorPrevisto}
+          previsto={foiEmitido(recebendo) ? faturadoDe(recebendo) : recebendo.valorPrevisto}
           rotuloAcao="Registrar recebimento"
           somenteLeitura={somenteLeitura}
           aoMudar={() => { carregar(); router.refresh(); }}

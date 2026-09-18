@@ -12,7 +12,7 @@ interface Cliente { id: string; nomeFantasia: string }
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 interface Medicao {
-  id: string; cliente: string; identificador: string; competencia: string;
+  id: string; cliente: string; clienteId: string; identificador: string; competencia: string;
   periodoInicio: string; periodoFim: string; descricaoServicos: string | null;
   valorPrevisto: number; valorMedido: number | null; dataMedicao: string | null;
   previsaoRecebimento: string | null; status: string; diferenca: number;
@@ -76,15 +76,10 @@ export default function GerenciarMedicoes({
 
   function abrirEdicao(m: Medicao) {
     setErro(null);
-    const cliente = clientes.find((c) => c.nomeFantasia === m.cliente);
-    if (!cliente) {
-      setErro("Não foi possível localizar o cliente desta medição.");
-      return;
-    }
 
     setEditandoId(m.id);
     setForm({
-      clienteId: cliente.id,
+      clienteId: m.clienteId,
       identificador: m.identificador,
       competencia: m.competencia,
       periodoInicio: m.periodoInicio,

@@ -4,7 +4,7 @@ import CampoMoeda from "@/components/CampoMoeda";
 
 import { TIPOS_CUSTO, TIPO_CUSTO_PADRAO } from "@/lib/financeiro/constantes";
 import SelectPadrao from "@/components/SelectPadrao";
-import { paraNumero } from "@/lib/ui";
+import { paraNumero, competenciaHoje } from "@/lib/ui";
 import PainelEventos from "@/components/PainelEventos";
 import GraficoCustosMensal from "@/components/GraficoCustosMensal";
 import { useState } from "react";
@@ -43,7 +43,7 @@ export default function GerenciarCustos({
   const [descricao, setDescricao] = useState("");
   const [tipo, setTipo] = useState<string>(TIPO_CUSTO_PADRAO);
   const [categoriaId, setCategoriaId] = useState("");
-  const [competencia, setCompetencia] = useState(() => new Date().toISOString().slice(0, 7));
+  const [competencia, setCompetencia] = useState(() => competenciaHoje());
   const [vencimento, setVencimento] = useState("");
   const [valor, setValor] = useState("");
   const [recorrente, setRecorrente] = useState(false);
@@ -54,7 +54,7 @@ export default function GerenciarCustos({
 
   // Controles de visualização: filtram apenas a lista exibida no cliente.
   // Não alteram cálculos persistidos, APIs ou regras financeiras.
-  const hoje = new Date().toISOString().slice(0, 7);
+  const hoje = competenciaHoje();
   const [competenciaFiltro, setCompetenciaFiltro] = useState(hoje);
   const [busca, setBusca] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("");
@@ -81,7 +81,7 @@ export default function GerenciarCustos({
     setDescricao("");
     setTipo(TIPO_CUSTO_PADRAO);
     setCategoriaId("");
-    setCompetencia(new Date().toISOString().slice(0, 7));
+    setCompetencia(competenciaHoje());
     setVencimento("");
     setValor("");
     setRecorrente(false);

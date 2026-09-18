@@ -17,14 +17,21 @@ export default async function PaginaMedicoes() {
     prisma.medicao.findMany({
       include: {
         cliente: { select: { nomeFantasia: true } },
-        recibos: { where: { substituidoPor: null }, select: { id: true, identificador: true, valorRecibo: true } },
+        recibos: {
+          where: { substituidoPor: null },
+          select: { id: true, identificador: true, valorRecibo: true, valorPrevisto: true, dataEmissao: true },
+        },
+        notasFiscais: { select: { id: true, numero: true, valorNota: true, valorPrevisto: true, dataEmissao: true } },
       },
       orderBy: [{ competencia: "desc" }, { identificador: "asc" }],
     }),
   ]);
 
   const medicoes = medicoesBrutas.map((m) => {
-    const documentos = m.recibos.map((r) => ({ valor: r.valorRecibo }));
+    const documentos = [
+      ...m.notasFiscais.map((n) => ({ valor: n.dataEmissao ? n.valorNota : n.valorPrevisto })),
+      ...m.recibos.map((r) => ({ valor: r.dataEmissao ? r.valorRecibo : r.valorPrevisto })),
+    ];
     return {
       id: m.id, cliente: m.cliente.nomeFantasia, clienteId: m.clienteId,
       identificador: m.identificador, competencia: m.competencia,

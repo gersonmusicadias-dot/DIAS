@@ -9,8 +9,16 @@ export const dataBR = (d?: string | null) =>
 export const compBR = (c?: string | null) =>
   c && /^\d{4}-\d{2}$/.test(c) ? `${c.slice(5)}/${c.slice(0, 4)}` : "—";
 
-export const hojeISO = () => new Date().toISOString().slice(0, 10);
-export const competenciaHoje = () => new Date().toISOString().slice(0, 7);
+/**
+ * `toISOString()` sempre devolve a data em UTC — em Maricá (UTC-3), das 21h
+ * à meia-noite ela já mostra o dia seguinte. Fixamos o fuso explicitamente
+ * para essas datas padrão de formulário baterem com o dia local de verdade.
+ */
+const hojeEmSaoPaulo = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+
+export const hojeISO = () => hojeEmSaoPaulo();
+export const competenciaHoje = () => hojeEmSaoPaulo().slice(0, 7);
 
 /**
  * Lê um valor digitado por gente, no formato brasileiro.
