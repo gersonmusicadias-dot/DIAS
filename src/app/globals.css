@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    FLUXOMED MARICÃ â€” base visual
    Mesma paleta do fluxomed_v2.html, para os dois produtos
    parecerem a mesma casa.
@@ -9917,8 +9917,34 @@ body {
   background: transparent;
   box-shadow: none;
 }
-.casca .grade-form .campo:has(.select-padrao) .select-padrao-botao {
-  height: 68px;
-  min-height: 68px;
-  padding: 0 13px;
+
+/* Central de Logs: barra de filtros compacta, na mesma escala dos filtros de Custos */
+.casca .fm-logs-filtros {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin-bottom: 12px; padding: 12px; border-radius: 13px;
+  border: 1px solid var(--fm-border); background: var(--fm-surface);
+}
+.casca .fm-logs-filtros .fm-busca-operacional { flex: 1 1 260px; }
+.casca .fm-logs-filtros .select-padrao { width: 178px; }
+.casca .fm-logs-filtros .select-padrao-botao {
+  height: 36px; min-height: 36px; padding: 0 11px;
+  border-radius: 9px; font-size: 11px; font-weight: 650;
+}
+.casca .fm-logs-filtros .select-padrao-lista { min-width: 230px; left: auto; right: 0; }
+.casca .fm-logs-data {
+  display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 6px 0 11px;
+  border: 1px solid var(--fm-border-strong); border-radius: 9px;
+  background: var(--fm-surface-2); color: var(--fm-muted);
+  font-size: 11px; font-weight: 650;
+}
+.casca .fm-logs-data:focus-within { border-color: var(--fm-brand); }
+.casca .fm-logs-data input {
+  height: 34px; border: 0; outline: 0; background: transparent;
+  color: var(--fm-text); font-size: 11px; color-scheme: dark;
+}
+[data-theme="claro"] .casca .fm-logs-data input { color-scheme: light; }
+.casca .fm-logs-filtros .fm-limpar-filtros:disabled { opacity: .6; cursor: default; }
+@media (max-width: 720px) {
+  .casca .fm-logs-filtros .select-padrao, .casca .fm-logs-data { flex: 1 1 100%; width: 100%; }
+  .casca .fm-logs-filtros .fm-limpar-filtros { flex: 1 1 calc(50% - 4px); }
 }

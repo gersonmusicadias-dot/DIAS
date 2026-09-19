@@ -61,9 +61,22 @@ function rotuloAcao(acao: string) {
     "alteracao-conta": "Alteração de conta",
     "exclusao-conta": "Exclusão de conta",
     convite: "Convite",
+    pagamento: "Pagamento",
+    recebimento: "Recebimento",
+    "definir-saldo-inicial": "Definição de saldo inicial",
+    "acrescentar-saldo-inicial": "Acréscimo de saldo inicial",
+    "alterar-saldo-inicial": "Alteração de saldo inicial",
+    "corrigir-saldo-inicial": "Correção de saldo inicial",
+    "criar-recorrencia": "Criação com recorrência",
+    anexar_arquivo: "Anexo adicionado",
+    anexar_pdf: "Anexo adicionado (PDF)",
+    substituir_anexo: "Anexo substituído",
+    remover_anexo: "Anexo removido",
   };
 
-  return mapa[acao] ?? acao;
+  if (mapa[acao]) return mapa[acao];
+  const texto = acao.replace(/[-_]+/g, " ").trim();
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 export default function GerenciarLogs() {
@@ -121,36 +134,17 @@ export default function GerenciarLogs() {
 
   return (
     <>
-      <div className="cartao">
-        <div className="cartao-corpo">
-          <div className="grade-form">
-            <div>
-              <label className="rotulo">Pesquisar</label>
-              <div className="campo">
-                <input
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                  placeholder="Usuário, módulo, ação, descrição ou IP"
-                />
-              </div>
-            </div>
-
-            <div><label className="rotulo">Módulo</label><div className="campo"><SelectPadrao value={modulo} onChange={setModulo} options={[{ value: "", label: "Todos" }, ...modulos.map((m) => ({ value: m, label: m }))]} ariaLabel="Filtrar por módulo" /></div></div>
-            <div><label className="rotulo">Ação</label><div className="campo"><SelectPadrao value={acao} onChange={setAcao} options={[{ value: "", label: "Todas" }, ...acoes.map((a) => ({ value: a, label: rotuloAcao(a) }))]} ariaLabel="Filtrar por ação" /></div></div>
-            <div><label className="rotulo">Data inicial</label><div className="campo"><input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} /></div></div>
-            <div><label className="rotulo">Data final</label><div className="campo"><input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} /></div></div>
-            <div className="form-acao">
-              <button
-                className="botao discreto"
-                type="button"
-                onClick={carregar}
-                disabled={carregando}
-              >
-                {carregando ? "Atualizando…" : "Atualizar"}
-              </button>
-            </div>
-          </div>
+      <div className="fm-logs-filtros">
+        <div className="fm-busca-operacional">
+          <span aria-hidden="true">⌕</span>
+          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Usuário, módulo, ação, descrição ou IP" aria-label="Pesquisar nos logs" />
         </div>
+        <SelectPadrao value={modulo} onChange={setModulo} options={[{ value: "", label: "Todos os módulos" }, ...modulos.map((m) => ({ value: m, label: m }))]} ariaLabel="Filtrar por módulo" />
+        <SelectPadrao value={acao} onChange={setAcao} options={[{ value: "", label: "Todas as ações" }, ...acoes.map((a) => ({ value: a, label: rotuloAcao(a) }))]} ariaLabel="Filtrar por ação" />
+        <label className="fm-logs-data"><span>De</span><input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} aria-label="Data inicial" /></label>
+        <label className="fm-logs-data"><span>Até</span><input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} aria-label="Data final" /></label>
+        <button type="button" className="fm-limpar-filtros" onClick={carregar} disabled={carregando}>{carregando ? "Atualizando…" : "↻ Atualizar"}</button>
+        <button type="button" className="fm-limpar-filtros" onClick={() => { setBusca(""); setModulo(""); setAcao(""); setDataInicio(""); setDataFim(""); }}>× Limpar</button>
       </div>
 
       {erro && <div className="erro">{erro}</div>}
