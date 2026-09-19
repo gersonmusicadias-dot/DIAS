@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import SelectPadrao from "@/components/SelectPadrao";
 
 interface EventoLog {
   id: string;
@@ -134,8 +135,8 @@ export default function GerenciarLogs() {
               </div>
             </div>
 
-            <div><label className="rotulo">Módulo</label><div className="campo"><select value={modulo} onChange={(e) => setModulo(e.target.value)}><option value="">Todos</option>{modulos.map((m) => <option key={m} value={m}>{m}</option>)}</select></div></div>
-            <div><label className="rotulo">Ação</label><div className="campo"><select value={acao} onChange={(e) => setAcao(e.target.value)}><option value="">Todas</option>{acoes.map((a) => <option key={a} value={a}>{rotuloAcao(a)}</option>)}</select></div></div>
+            <div><label className="rotulo">Módulo</label><div className="campo"><SelectPadrao value={modulo} onChange={setModulo} options={[{ value: "", label: "Todos" }, ...modulos.map((m) => ({ value: m, label: m }))]} ariaLabel="Filtrar por módulo" /></div></div>
+            <div><label className="rotulo">Ação</label><div className="campo"><SelectPadrao value={acao} onChange={setAcao} options={[{ value: "", label: "Todas" }, ...acoes.map((a) => ({ value: a, label: rotuloAcao(a) }))]} ariaLabel="Filtrar por ação" /></div></div>
             <div><label className="rotulo">Data inicial</label><div className="campo"><input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} /></div></div>
             <div><label className="rotulo">Data final</label><div className="campo"><input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} /></div></div>
             <div className="form-acao">

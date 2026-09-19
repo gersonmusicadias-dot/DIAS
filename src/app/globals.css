@@ -9907,3 +9907,18 @@ body {
 .casca .fm-observacao-campo textarea::placeholder { color: var(--fm-faint); }
 .casca .fm-observacao-campo textarea:focus { border-color: var(--fm-brand); box-shadow: 0 0 0 3px var(--fm-brand-soft); }
 .casca .fm-observacao-campo textarea:disabled { opacity: .6; cursor: not-allowed; }
+
+/* SelectPadrao dentro de .campo: a caixa já é do próprio select (sem borda dupla).
+   Em formulários em grade, a altura acompanha os campos de texto vizinhos. */
+.casca .campo:has(.select-padrao) {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.casca .grade-form .campo:has(.select-padrao) .select-padrao-botao {
+  height: 68px;
+  min-height: 68px;
+  padding: 0 13px;
+}
