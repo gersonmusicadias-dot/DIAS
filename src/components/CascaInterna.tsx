@@ -7,6 +7,7 @@ import BotaoSair from "@/components/BotaoSair";
 import MenuLateral from "@/components/MenuLateral";
 import AlternarTema from "@/components/AlternarTema";
 import SinoNotificacoes from "@/components/SinoNotificacoes";
+import TabelasEmCartoes from "@/components/TabelasEmCartoes";
 
 const ROTULO_PAPEL: Record<string, string> = {
   ADMIN: "Administrador",
@@ -45,6 +46,7 @@ export default function CascaInterna({
 
   return (
     <div className="casca">
+      <TabelasEmCartoes />
       {aberto && (
         <div
           className="veu-menu"

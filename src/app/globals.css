@@ -9900,8 +9900,8 @@ body {
 .casca .fm-observacao-campo { grid-column: 1 / -1; }
 .casca .fm-observacao-campo textarea {
   width: 100%; min-height: 84px; padding: 11px 14px; resize: vertical;
-  border: 1px solid var(--fm-border-strong); border-radius: 10px;
-  background: var(--fm-bg-soft); color: var(--fm-text);
+  border: 1px solid rgba(128, 159, 185, .18); border-radius: 10px;
+  background: #1c3047; color: var(--fm-text);
   font: inherit; font-size: 13px; line-height: 1.45; outline: 0;
 }
 .casca .fm-observacao-campo textarea::placeholder { color: var(--fm-faint); }
@@ -9947,4 +9947,185 @@ body {
 @media (max-width: 720px) {
   .casca .fm-logs-filtros .select-padrao, .casca .fm-logs-data { flex: 1 1 100%; width: 100%; }
   .casca .fm-logs-filtros .fm-limpar-filtros { flex: 1 1 calc(50% - 4px); }
+}
+
+/* ---------- Celular: tabelas viram cartões ---------- */
+@media (max-width: 900px) {
+  .casca .tabela-rolagem:has(table.fm-cartoes),
+  .casca .fm-table-scroll:has(table.fm-cartoes),
+  .casca .fm-caixa-v41-tabela-wrap:has(table.fm-cartoes) {
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  .casca table.fm-cartoes {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+    border: 0;
+  }
+  .casca table.fm-cartoes thead { display: none; }
+  .casca table.fm-cartoes tbody,
+  .casca table.fm-cartoes tfoot { display: block; }
+  .casca table.fm-cartoes tr {
+    display: block;
+    margin: 0 0 10px;
+    padding: 4px 14px 6px;
+    border: 1px solid var(--fm-border-strong);
+    border-radius: 12px;
+    background: var(--fm-surface-2);
+  }
+  .casca table.fm-cartoes td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    height: auto;
+    min-height: 0;
+    padding: 8px 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--fm-border) !important;
+    text-align: right;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    background: transparent !important;
+  }
+  .casca table.fm-cartoes td:last-child { border-bottom: 0 !important; }
+  .casca table.fm-cartoes td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    max-width: 42%;
+    color: var(--fm-muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+  .casca table.fm-cartoes td:first-child {
+    display: block;
+    padding: 10px 0 8px !important;
+    text-align: left;
+    font-size: 14px;
+  }
+  .casca table.fm-cartoes td:first-child::before { display: none; }
+  .casca table.fm-cartoes td:not([data-label]) {
+    display: block;
+    text-align: left;
+  }
+  .casca table.fm-cartoes td:not([data-label])::before { display: none; }
+  .casca table.fm-cartoes td .acoes-linha,
+  .casca table.fm-cartoes td:not([data-label]) > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  .casca table.fm-cartoes .botao.mini,
+  .casca table.fm-cartoes td button {
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 900px) {
+  .casca table.fm-cartoes td[data-label="Ações"] {
+    display: block;
+    padding-top: 10px !important;
+    text-align: left;
+  }
+  .casca table.fm-cartoes td[data-label="Ações"]::before { display: none; }
+  .casca table.fm-cartoes td[data-label="Ações"] > * { margin-right: 8px; }
+}
+
+/* Seta dos seletores: chevron em CSS, centralizado (o caractere ⌄ ficava abaixo da linha do texto) */
+.casca .select-padrao-seta {
+  width: 7px; height: 7px; margin: -3px 3px 0 0;
+  font-size: 0; line-height: 0; overflow: hidden;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+.casca .select-padrao.aberto .select-padrao-seta { transform: rotate(225deg); margin-top: 3px; }
+
+/* Blocos após a grade do formulário de Custos precisam de respiro próprio */
+.casca .fm-custo-secao > .fm-observacao-campo,
+.casca .fm-custo-secao > .fm-comprovante-campo { margin-top: 18px; }
+
+@media (max-width: 900px) {
+  .casca table.fm-cartoes .fm-acoes-compactas { position: relative; justify-content: flex-start; gap: 8px; }
+  .casca table.fm-cartoes .fm-menu-acoes-wrap { position: static; }
+  .casca table.fm-cartoes .fm-menu-acoes { left: 0; right: auto; width: min(240px, 78vw); }
+  .casca table.fm-cartoes .fm-menu-acoes button { min-height: 44px; font-size: 14px; padding: 0 12px; }
+  .casca table.fm-cartoes .fm-acao-icone { width: 40px; height: 40px; }
+}
+@media (max-width: 720px) {
+  .casca .fm-menu-acoes { left: 0; right: auto; width: min(240px, 78vw); }
+  .casca .fm-menu-acoes button { min-height: 44px; font-size: 14px; padding: 0 12px; }
+  .casca .fm-acao-icone { width: 40px; height: 40px; }
+  .casca .fm-comprovante-acoes .botao,
+  .casca .fm-anexo-pdf-acoes-vazio .botao { min-height: 42px; display: inline-flex; align-items: center; }
+}
+
+/* ---------- Tablet: o menu lateral vira gaveta (como no celular) ---------- */
+@media (min-width: 701px) and (max-width: 1024px) {
+  .casca .lateral {
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 50;
+    width: min(300px, 60vw); height: 100vh;
+    transform: translateX(-100%);
+    transition: transform .22s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, .5);
+  }
+  .casca .lateral.aberta { transform: translateX(0); }
+  .casca .botao-menu { display: inline-flex; width: 42px; height: 42px; }
+  .casca .so-celular { display: inline-flex; }
+}
+
+/* O rótulo genérico de .fm-custo-campo (display: block) desmontava a linha checkbox + texto */
+.casca .fm-custo-campo label.fm-recibo-check {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0; min-height: 46px; padding: 0 14px;
+  color: var(--fm-text); font-size: 13px; font-weight: 600;
+}
+.casca .fm-custo-campo label.fm-recibo-check input { flex: 0 0 auto; width: 18px; height: 18px; }
+
+/* Fluxo de Caixa no celular: período em duas colunas, sem rolagem lateral interna */
+@media (max-width: 720px) {
+  .casca .fm-caixa-v41-periodo-principal {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px;
+    width: 100%; padding: 12px; overflow: visible;
+  }
+  .casca .fm-caixa-v41-calendario,
+  .casca .fm-caixa-v41-ate { display: none; }
+  .casca .fm-caixa-v41-periodo-label { grid-column: 1 / -1; font-size: 11px; }
+  .casca .fm-caixa-v41-periodo-principal input {
+    width: 100%; min-width: 0; height: 44px; padding: 0 10px;
+    border: 1px solid var(--fm-border-strong) !important; border-radius: 9px;
+    background: var(--fm-surface-2) !important; font-size: 14px;
+  }
+  .casca .fm-caixa-v41-periodo > button { flex: 1 1 calc(50% - 8px); min-height: 42px; }
+}
+
+/* Detalhamento: link de voltar e rótulo não podem ficar colados na mesma linha */
+.casca .fm-detalhe-topo .fm-eyebrow { display: block; }
+.casca .fm-detalhe-topo > div:first-child > a { display: inline-flex; align-items: center; min-height: 40px; margin-bottom: 8px; font-size: 13px; }
+
+/* Câmera: rola no celular deitado e quebra a linha de botões em vez de estourar */
+.casca .fm-camera-overlay { overflow-y: auto; }
+.casca .fm-camera-caixa { max-height: 100%; display: flex; flex-direction: column; }
+.casca .fm-camera-acoes { flex-wrap: wrap; }
+.casca .fm-camera-acoes .botao { flex: 1 1 auto; min-height: 44px; }
+@media (max-height: 520px) {
+  .casca .fm-camera-visor { aspect-ratio: auto; height: 52vh; max-height: 52vh; }
+  .casca .fm-camera-cabecalho { padding: 10px 16px; }
+}
+
+/* Janelas "Visualizar" (somente leitura): campos curtos em duas colunas no celular */
+@media (max-width: 720px) {
+  .casca .grade-form:not(:has(input, select, textarea, .select-padrao)) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+  }
+  .casca .grade-form:not(:has(input, select, textarea, .select-padrao)) .campo {
+    min-height: 44px; padding: 9px 12px; font-size: 14px; overflow-wrap: anywhere;
+  }
 }
