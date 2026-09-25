@@ -194,13 +194,6 @@ export default function GerenciarCustos({
     setErro(null);
     limparComprovante();
 
-    if (c.pago > 0) {
-      setErro(
-        "Este custo possui pagamento registrado. Estorne o pagamento antes de editar."
-      );
-      return;
-    }
-
     setEditandoId(c.id);
     setDescricao(c.descricao);
     setTipo(c.tipo);
@@ -687,7 +680,7 @@ export default function GerenciarCustos({
                         <button type="button" className="fm-acao-icone" onClick={() => setMenuAcoesId(menuAcoesId === c.id ? null : c.id)} aria-label="Mais ações" title="Mais ações">⋮</button>
                         {menuAcoesId === c.id && (
                           <div className="fm-menu-acoes">
-                            {c.pago <= 0 && <button type="button" onClick={() => { setMenuAcoesId(null); iniciarEdicao(c); }}>Editar</button>}
+                            <button type="button" onClick={() => { setMenuAcoesId(null); iniciarEdicao(c); }}>Editar</button>
                             <button type="button" onClick={() => { setMenuAcoesId(null); setPagamentosDe(c); }}>
                               {!c.temMovimento ? "Pagar" : c.saldo > 0.005 ? "Pagamentos / estornos" : "Pagamentos / estornar"}
                             </button>

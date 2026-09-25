@@ -202,11 +202,13 @@ export async function PATCH(req: Request) {
     })),
   });
 
-  if (financeiro.pago > 0) {
+  // Mesma regra j\u00e1 aplicada a Notas Fiscais e Recibos: editar n\u00e3o exige
+  // estornar primeiro, mas o valor previsto n\u00e3o pode cair abaixo do que j\u00e1
+  // foi pago \u2014 isso deixaria o custo com saldo negativo.
+  if (dados.data.valorPrevisto + 0.005 < financeiro.pago) {
     return NextResponse.json(
       {
-        erro:
-          "Este custo possui pagamento registrado. Estorne o pagamento antes de alterar o lan\u00e7amento.",
+        erro: `O valor previsto n\u00e3o pode ser inferior a R$ ${financeiro.pago.toFixed(2)} porque esse valor j\u00e1 foi pago. Estorne primeiro o pagamento excedente.`,
       },
       { status: 409 }
     );
