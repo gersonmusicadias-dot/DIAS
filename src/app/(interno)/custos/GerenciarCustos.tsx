@@ -14,7 +14,9 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const TIPOS_COMPROVANTE_ACEITOS = "application/pdf,image/jpeg,image/png";
-const LIMITE_BYTES_COMPROVANTE = 10 * 1024 * 1024;
+// A Vercel recusa qualquer envio acima de ~4.5 MB antes mesmo de chegar na
+// nossa API — ficar bem abaixo disso evita um envio que "trava" sem erro.
+const LIMITE_BYTES_COMPROVANTE = 4 * 1024 * 1024;
 
 interface Categoria { id: string; nome: string; tipo: string }
 
@@ -135,7 +137,7 @@ export default function GerenciarCustos({
       if (!["application/pdf", "image/jpeg", "image/png"].includes(arquivo.type)) {
         recusados.push(`${arquivo.name}: somente PDF, JPEG ou PNG.`);
       } else if (arquivo.size > LIMITE_BYTES_COMPROVANTE) {
-        recusados.push(`${arquivo.name}: acima de 10 MB.`);
+        recusados.push(`${arquivo.name}: acima de 4 MB.`);
       } else {
         validos.push(arquivo);
       }
@@ -253,12 +255,19 @@ export default function GerenciarCustos({
       if (comprovantes.length && dados.custo?.id) {
         const falhas: string[] = [];
         for (const { arquivo } of comprovantes) {
-          const formData = new FormData();
-          formData.append("arquivo", arquivo);
-          const rAnexo = await fetch(`/api/anexos/custo/${dados.custo.id}`, { method: "POST", body: formData });
-          if (!rAnexo.ok) {
-            const erroAnexo = await rAnexo.json().catch(() => ({}));
-            falhas.push(`${arquivo.name}: ${erroAnexo.erro ?? "erro desconhecido"}`);
+          try {
+            const formData = new FormData();
+            formData.append("arquivo", arquivo);
+            const rAnexo = await fetch(`/api/anexos/custo/${dados.custo.id}`, { method: "POST", body: formData });
+            if (!rAnexo.ok) {
+              const erroAnexo = await rAnexo.json().catch(() => ({}));
+              falhas.push(`${arquivo.name}: ${erroAnexo.erro ?? "erro desconhecido"}`);
+            }
+          } catch {
+            // Sem isto, uma queda de conexão no meio do envio abortava a
+            // função inteira: o custo ficava salvo, mas o modal não fechava
+            // e nenhuma mensagem explicava por quê.
+            falhas.push(`${arquivo.name}: falha de conexão durante o envio.`);
           }
         }
         if (falhas.length) setErro(`Custo salvo, mas nem todos os comprovantes foram anexados — ${falhas.join("; ")}.`);
@@ -539,7 +548,7 @@ export default function GerenciarCustos({
                   <div className="fm-custo-campo fm-comprovante-campo">
                     <label>Comprovante (opcional)</label>
                     <p className="fm-comprovante-ajuda">
-                      Anexe o comprovante ou tire uma foto — a data e o valor são preenchidos automaticamente quando identificados.
+                      Anexe o comprovante ou tire uma foto (até 4 MB cada) — a data e o valor são preenchidos automaticamente quando identificados.
                     </p>
 
                     {comprovantes.map((c, indice) => (
@@ -737,7 +746,7 @@ export default function GerenciarCustos({
                 )}
               </div>
               <div style={{ marginTop: 20 }}>
-                <label className="rotulo">Anexo (PDF, JPEG ou PNG)</label>
+                <label className="rotulo">Anexo (PDF, JPEG ou PNG, até 4 MB)</label>
                 <AnexoPdf tipo="custo" id={visualizando.id} anexosIniciais={visualizando.anexos ?? []} somenteLeitura={somenteLeitura} />
               </div>
             </div>

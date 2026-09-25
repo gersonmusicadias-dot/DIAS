@@ -5,7 +5,10 @@ import { registrarAuditoria } from "@/lib/auditoria";
 
 export const runtime = "nodejs";
 
-const LIMITE_BYTES = 10 * 1024 * 1024;
+// A Vercel recusa (fora do nosso código, antes mesmo de chegar aqui) qualquer
+// corpo de requisição acima de ~4.5 MB. Ficar bem abaixo disso evita que um
+// arquivo pareça "travar" no envio sem nenhuma mensagem de erro clara.
+const LIMITE_BYTES = 4 * 1024 * 1024;
 const MAX_ARQUIVOS_POR_ENVIO = 10;
 const TIPOS_ACEITOS =new Set(["application/pdf", "image/jpeg", "image/png"]);
 
@@ -187,7 +190,7 @@ export async function POST(
     }
     if (arquivo.size > LIMITE_BYTES) {
       return NextResponse.json(
-        { erro: `"${arquivo.name}": o arquivo não pode ultrapassar 10 MB.` },
+        { erro: `"${arquivo.name}": o arquivo não pode ultrapassar 4 MB.` },
         { status: 400 },
       );
     }

@@ -3,7 +3,9 @@
 import { useState } from "react";
 import CapturarFoto from "@/components/CapturarFoto";
 
-const LIMITE_BYTES = 10 * 1024 * 1024;
+// A Vercel recusa qualquer envio acima de ~4.5 MB antes mesmo de chegar na
+// nossa API — ficar bem abaixo disso evita um envio que "trava" sem erro.
+const LIMITE_BYTES = 4 * 1024 * 1024;
 const TIPOS_ACEITOS = ["application/pdf", "image/jpeg", "image/png"];
 
 interface AnexoInfo {
@@ -50,18 +52,25 @@ export default function AnexoPdf({
           continue;
         }
         if (arquivo.size > LIMITE_BYTES) {
-          falhas.push(`${arquivo.name}: acima de 10 MB.`);
+          falhas.push(`${arquivo.name}: acima de 4 MB.`);
           continue;
         }
-        const formData = new FormData();
-        formData.append("arquivo", arquivo);
-        const r = await fetch(rota, { method: "POST", body: formData });
-        const d = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          falhas.push(`${arquivo.name}: ${d.erro ?? "não foi possível anexar."}`);
-          continue;
+        try {
+          const formData = new FormData();
+          formData.append("arquivo", arquivo);
+          const r = await fetch(rota, { method: "POST", body: formData });
+          const d = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            falhas.push(`${arquivo.name}: ${d.erro ?? "não foi possível anexar."}`);
+            continue;
+          }
+          setAnexos((atuais) => [...atuais, ...(d.anexos as AnexoInfo[])]);
+        } catch {
+          // Uma queda de conexão no meio do envio (comum com arquivo grande em
+          // rede instável) não pode passar batido: sem isto, o arquivo some da
+          // tela sem explicação nenhuma.
+          falhas.push(`${arquivo.name}: falha de conexão durante o envio. Tente novamente.`);
         }
-        setAnexos((atuais) => [...atuais, ...(d.anexos as AnexoInfo[])]);
       }
     } finally {
       setEnviando(false);

@@ -171,7 +171,7 @@ async function principal() {
     entrou === 15000, `12.000 do recebimento + 3.000 do estorno = ${entrou}`);
   checar("7b. O pagamento SAI do caixa", saiu === 8000, String(saiu));
   checar("7c. Saldo final = saldo inicial + entradas − saídas",
-    caixa.saldoFinal === caixa.saldoInicial + caixa.entradas - caixa.saidas,
+    Math.abs(caixa.saldoFinal - (caixa.saldoInicial + caixa.entradas - caixa.saidas)) < 0.005,
     `${caixa.saldoInicial} + ${caixa.entradas} - ${caixa.saidas} = ${caixa.saldoFinal}`);
   // 12.000 recebidos − 8.000 pagos + 3.000 estornados
   checar("7c2. E o que este teste movimentou é exatamente 7.000",

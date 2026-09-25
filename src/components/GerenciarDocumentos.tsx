@@ -831,7 +831,7 @@ export default function GerenciarDocumentos({
                 )}
               </div>
               <div style={{ marginTop: 20 }}>
-                <label className="rotulo">Anexo (PDF, JPEG ou PNG)</label>
+                <label className="rotulo">Anexo (PDF, JPEG ou PNG, até 4 MB)</label>
                 <AnexoPdf tipo={tipo} id={visualizando.id} anexosIniciais={visualizando.anexos ?? []} somenteLeitura={somenteLeitura} />
               </div>
             </div>
